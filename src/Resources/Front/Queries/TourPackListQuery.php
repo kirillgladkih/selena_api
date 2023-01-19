@@ -34,10 +34,7 @@ class TourPackListQuery extends BasicQuery
      * 
      * @var array
      */
-    protected array $attributes = [
-        "objectid",
-        "tourpackid"
-    ];
+    protected array $attributes = ["objectid", "tourpackid"];
     /**
      * Resolve
      *

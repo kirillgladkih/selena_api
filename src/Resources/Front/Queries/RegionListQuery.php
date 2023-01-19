@@ -30,9 +30,7 @@ class RegionListQuery extends BasicQuery
      * 
      * @var array
      */
-    protected array $attributes = [
-        "dirid"
-    ];
+    protected array $attributes = ["dirid"];
     /**
      * Resolve
      *

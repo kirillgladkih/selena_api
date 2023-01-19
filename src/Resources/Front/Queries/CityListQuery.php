@@ -36,11 +36,7 @@ class CityListQuery extends BasicQuery
      * 
      * @var array
      */
-    protected array $attributes = [
-        "cityid",
-        "fias_guid",
-        "name"
-    ];
+    protected array $attributes = ["cityid", "fias_guid", "name"];
     /**
      * Resolve
      *

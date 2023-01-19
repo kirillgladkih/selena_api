@@ -34,10 +34,7 @@ class UnitListQuery extends BasicQuery
      * 
      * @var array
      */
-    protected array $attributes = [
-        "objectid",
-        "unitid"
-    ];
+    protected array $attributes = ["objectid", "unitid"];
     /**
      * Resolve
      *

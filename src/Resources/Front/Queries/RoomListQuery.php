@@ -34,10 +34,7 @@ class RoomListQuery extends BasicQuery
      * 
      * @var array
      */
-    protected array $attributes = [
-        "apartmentid",
-        "roomid"
-    ];
+    protected array $attributes = ["apartmentid", "roomid"];
     /**
      * Resolve
      *

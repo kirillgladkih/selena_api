@@ -30,9 +30,7 @@ class DiscountLIstQuery extends BasicQuery
      * 
      * @var array
      */
-    protected array $attributes = [
-        "objectid"
-    ];
+    protected array $attributes = ["objectid"];
     /**
      * Resolve
      *

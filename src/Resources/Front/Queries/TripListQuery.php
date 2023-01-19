@@ -30,9 +30,7 @@ class TripListQuery extends BasicQuery
      * 
      * @var array
      */
-    protected array $attributes = [
-        "tourid"
-    ];
+    protected array $attributes = ["tourid"];
     /**
      * Resolve
      *

@@ -34,10 +34,7 @@ class RoomOccupiedSexQuery extends BasicQuery
      * 
      * @var array
      */
-    protected array $attributes = [
-        "tourid",
-        "roomid"
-    ];
+    protected array $attributes = ["tourid", "roomid"];
     /**
      * Resolve
      *

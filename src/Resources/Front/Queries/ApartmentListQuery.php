@@ -36,11 +36,7 @@ class ApartmentListQuery extends BasicQuery
      * 
      * @var array
      */
-    protected array $attributes = [
-        "objectid",
-        "unitid",
-        "apartmentid"
-    ];
+    protected array $attributes = ["objectid", "unitid", "apartmentid"];
     /**
      * Resolve
      *

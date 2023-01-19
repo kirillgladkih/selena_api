@@ -34,10 +34,7 @@ class TourStandListQuery extends BasicQuery
      * 
      * @var array
      */
-    protected array $attributes = [
-        "tourid",
-        "tourstandid"
-    ];
+    protected array $attributes = ["tourid", "tourstandid"];
     /**
      * Resolve
      *

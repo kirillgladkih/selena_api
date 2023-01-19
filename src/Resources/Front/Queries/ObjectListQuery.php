@@ -34,10 +34,7 @@ class ObjectListQuery extends BasicQuery
      * 
      * @var array
      */
-    protected array $attributes = [
-        "regionid",
-        "objectid"
-    ];
+    protected array $attributes = ["regionid", "objectid"];
     /**
      * Resolve
      *

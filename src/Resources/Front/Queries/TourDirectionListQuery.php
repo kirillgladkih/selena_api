@@ -34,10 +34,7 @@ class TourDirectionListQuery extends BasicQuery
      * 
      * @var array
      */
-    protected array $attributes = [
-        "dirid",
-        "tourdirid"
-    ];
+    protected array $attributes = ["dirid", "tourdirid"];
     /**
      * Resolve
      *

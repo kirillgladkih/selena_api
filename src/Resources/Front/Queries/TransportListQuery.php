@@ -34,9 +34,7 @@ class TransportListQuery extends BasicQuery
      * 
      * @var array
      */
-    protected array $attributes = [
-        "id"
-    ];
+    protected array $attributes = ["id"];
     /**
      * Resolve
      *
