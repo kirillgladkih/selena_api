@@ -52,7 +52,6 @@ abstract class BasicQuery
      */
     public function __construct(array $data = [])
     {
-
         $this->resolveParams($data);
     }
     /**

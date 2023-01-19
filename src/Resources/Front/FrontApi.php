@@ -3,7 +3,11 @@
 namespace Selena\Resources\Front;
 
 use Selena\Resources\BasicApi;
-
+/**
+ * Front api 
+ * 
+ * Documentation: https://selena-online.ru/rest/documentation/frontapi
+ */
 class FrontApi extends BasicApi
 {
     /**
