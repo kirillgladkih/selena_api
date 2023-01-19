@@ -11,7 +11,7 @@ use Selena\Resources\BasicQuery;
  * 
  * URL: https://selena-online.ru/rest/v1/discountlist/<int:objectid - ID объекта размещения>
  */
-class DiscountLIstQuery extends BasicQuery
+class DiscountListQuery extends BasicQuery
 {
     /**
      * Url method
