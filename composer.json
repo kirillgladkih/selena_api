@@ -1,0 +1,17 @@
+{
+    "name": "amado/selena_integration",
+    "autoload": {
+        "psr-4": {
+            "Selena\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Kirill Gladkih",
+            "email": "kirillgladkih2019@gmail.com"
+        }
+    ],
+    "require": {
+        "guzzlehttp/guzzle": "^7.5"
+    }
+}
