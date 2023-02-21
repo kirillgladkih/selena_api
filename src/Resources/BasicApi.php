@@ -4,6 +4,7 @@ namespace Selena\Resources;
 
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\ResponseInterface;
+use Selena\Exceptions\ApiException;
 
 abstract class BasicApi
 {
@@ -33,16 +34,30 @@ abstract class BasicApi
     {
         $response = $query->resolve($this->client);
 
-        return !is_null($responder) ? $responder($response) : $this->defaultResponder($response);
+        return !is_null($responder) ? $responder($response) : $this->defaultResponder($response, $query);
     }
     /**
      * Default responder
      *
-     * @param [type] $response
+     * @param ResponseInterface $response
+     * @param BasicQuery $query
      * @return mixed
      */
-    protected function defaultResponder($response): mixed
+    protected function defaultResponder(ResponseInterface $response, BasicQuery $query): mixed
     {
-        return $response;
+        $data = json_decode($response->getBody()->getContents(), true);
+
+        if (isset($data["error"])) {
+
+            $exception = new ApiException($data["error"]["message"] ?? "", $data["error"]["code"] ?? 500);
+
+            $exception->setQuery($query);
+
+            $exception->setResponse($response);
+
+            throw $exception;
+        }
+
+        return $data;
     }
 }

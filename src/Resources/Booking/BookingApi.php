@@ -40,14 +40,4 @@ class BookingApi extends BasicApi
 
         return $this->respond($query, $responder);
     }
-    /**
-     * Default responder
-     *
-     * @param $response
-     * @return mixed
-     */
-    protected function defaultResponder($response): mixed
-    {
-        return $response;
-    }
 }
