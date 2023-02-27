@@ -1,6 +1,6 @@
 <?php
 
-namespace Selena\Tasks\Tours;
+namespace Selena\Tasks\Subtasks;
 
 use Psr\Http\Client\ClientInterface;
 use Selena\Exceptions\ApiException;
@@ -41,9 +41,9 @@ class GetMinPriceForTour implements TaskContract
      *
      * @return string
      */
-    public function tag(): string 
+    public function tag(): string
     {
-        return self::class . "_{$this->objectid}_{$this->tourid}"; 
+        return self::class . "_{$this->objectid}_{$this->tourid}";
     }
     /**
      * Get callable
@@ -53,14 +53,20 @@ class GetMinPriceForTour implements TaskContract
     public function get(): callable
     {
         return function (ClientInterface $client) {
-            
+
             try {
-             
+
                 $frontApi = new FrontApi($client);
 
                 $tour = $frontApi->tourList(["objectid" => $this->objectid, "tourid" => $this->tourid]);
 
+                $offers = $frontApi->offers(["objectid" => $this->objectid, "tourid" => $this->tourid])["offers"] ?? [];
+
+                $allowApartments = [];
+
                 $prices = [];
+
+                foreach ($offers as $offer) $allowApartments[] = $offer["apartmentid"];
                 /**
                  * Получение апартаментов
                  */
@@ -68,7 +74,9 @@ class GetMinPriceForTour implements TaskContract
 
                     $apartments = $frontApi->apartmentList(["objectid" => $this->objectid]);
 
-                    foreach ($apartments["apartments"] ?? [] as $apartment) $apartmentIds[] = $apartment["id"];
+                    foreach ($apartments["apartments"] ?? [] as $apartment)
+                        if (in_array($apartment["id"], $allowApartments))
+                            $apartmentIds[] = $apartment["id"];
                 }
                 /**
                  * Формирование масива цен для сравнения
@@ -108,14 +116,15 @@ class GetMinPriceForTour implements TaskContract
                         $minimumPrice = ($minimumPrice > $comparablePrice) ? $comparablePrice : $minimumPrice;
                     }
                 }
-                
-                $result = $minimumPrice;
 
+                $result = $minimumPrice;
+           
             } catch (\Exception $e) {
 
                 $result = null;
-
+           
             }
+           
             return $result;
         };
     }

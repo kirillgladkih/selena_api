@@ -1,6 +1,6 @@
 <?php
 
-namespace Selena\Tasks\Tours;
+namespace Selena\Tasks\Subtasks;
 
 use Psr\Http\Client\ClientInterface;
 use Selena\Exceptions\ApiException;

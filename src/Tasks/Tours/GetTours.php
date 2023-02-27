@@ -6,10 +6,13 @@ use DateTime;
 use Psr\Http\Client\ClientInterface;
 use Selena\Exceptions\ApiException;
 use Selena\Resources\Front\FrontApi;
+use Selena\Tasks\Subtasks\GetDiscountsForObject;
+use Selena\Tasks\Subtasks\GetMinPriceForTour;
+use Selena\Tasks\Subtasks\GetOffersForTour;
 use Selena\Tasks\TaskContract;
 
 /**
- * Получить свободные места для тура
+ * Получить список туров для теплохода
  */
 class GetTours implements TaskContract
 {
@@ -76,8 +79,25 @@ class GetTours implements TaskContract
                 if(!empty($this->to)) $query["to"] = $this->to;
 
                 $tours = $frontApi->tourList($query)["tours"] ?? [];
-                
-                $result = $tours;
+
+                foreach($tours as $tour){
+
+                    $offersForTourTask = new GetOffersForTour($this->objectid, $tour["id"]);
+
+                    $minPriceForTourTask = new GetMinPriceForTour($this->objectid, $tour["id"]);
+    
+                    $discountsForObjectTask = new GetDiscountsForObject($this->objectid);
+    
+                    $item = [
+                        "tour" => $tour,
+                        "amount_places" => ($offersForTourTask->get())($client),
+                        "min_price" => ($minPriceForTourTask->get())($client),
+                        "discounts" => ($discountsForObjectTask->get())($client)
+                    ];
+
+                    $result[] = $item;
+
+                }
 
             } catch (ApiException $exception) {
 

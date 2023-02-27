@@ -68,8 +68,8 @@ class ReserveQuery extends BasicQuery
     private function resolveBody(): void
     {
         $data = [
-            "commit" => $this->params["commit"] ?? false, 
             "order" => $this->params["order"] ?? [], 
+            "commit" => $this->params["commit"] ?? false, 
             "tourists" => $this->params["tourists"] ?? []
         ];
 

@@ -7,7 +7,7 @@ use RuntimeException;
 
 class ApiException extends RuntimeException
 {
-    protected $response;
+    protected ResponseInterface $response;
 
     protected $query;
 
@@ -16,12 +16,12 @@ class ApiException extends RuntimeException
         parent::__construct($message, $code, $previous);
     }
 
-    public function setResponse($response)
+    public function setResponse(ResponseInterface $response)
     {
         $this->response = $response;
     }
 
-     public function getResponse()
+    public function getResponse(): ResponseInterface
     {
         return $this->response;
     }

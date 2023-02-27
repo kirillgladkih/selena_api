@@ -9,7 +9,7 @@ use Selena\Resources\Front\FrontApi;
 use Selena\Tasks\TaskContract;
 
 /**
- * Получить список апартаментов по палубе
+ * Получить список апартаментов по палубам вместе с ценами и свободными местами
  */
 class GetApartmentsWithPrices implements TaskContract
 {
@@ -111,6 +111,8 @@ class GetApartmentsWithPrices implements TaskContract
                          */
                         $prices = $frontApi->apartmentPrice($pricesQuery)["apartmentprices"] ?? [];
 
+                        ApartmentHelper::prepareRegularPrices($prices);
+
                         $apartment["prices"] = $prices[0] ?? [];
 
                         $offersQuery = ["apartmentid" => $apartment["id"], "tourid" => $this->tourid, "objectid" => $this->objectid];
@@ -128,7 +130,7 @@ class GetApartmentsWithPrices implements TaskContract
                         continue;
                     }
                 }
-                
+
             } catch (\Exception $exception) {
 
                 $result = null;
