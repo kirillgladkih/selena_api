@@ -84,12 +84,12 @@ class GetTours implements TaskContract
 
                     // $offersForTourTask = new GetOffersForTour($this->objectid, $tour["id"]);
 
-                    $minPriceForTourTask = new GetMinPriceForTour($this->objectid, $tour["id"]);
+                    // $minPriceForTourTask = new GetMinPriceForTour($this->objectid, $tour["id"]);
         
                     $item = [
                         "tour" => $tour,
                         // "amount_places" => ($offersForTourTask->get())($client),
-                        "min_price" => ($minPriceForTourTask->get())($client),
+                        // "min_price" => ($minPriceForTourTask->get())($client),
                     ];
 
                     $result["tours"][] = $item;
