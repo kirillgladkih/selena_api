@@ -44,7 +44,7 @@ class GetTourDetail implements TaskContract
      *
      * @return string
      */
-    public function tag(): string
+    public function tag()
     {
         return self::class . "_{$this->objectid}_{$this->tourid}";
     }
@@ -53,7 +53,7 @@ class GetTourDetail implements TaskContract
      *
      * @return callable
      */
-    public function get(): callable
+    public function get()
     {
         return function (ClientInterface $client) {
 

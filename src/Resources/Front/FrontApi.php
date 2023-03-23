@@ -19,7 +19,7 @@ class FrontApi extends BasicApi
      * @param \Closure|null $responder
      * @return mixed
      */
-    public function apartmentList(array $data = [], ?\Closure $responder = null): mixed
+    public function apartmentList(array $data = [], ?\Closure $responder = null)
     {
         $query = new \Selena\Resources\Front\Queries\ApartmentListQuery($data);
 
@@ -34,7 +34,7 @@ class FrontApi extends BasicApi
      * @param \Closure|null $responder
      * @return mixed
      */
-    public function apartmentPrice(array $data = [], ?\Closure $responder = null): mixed
+    public function apartmentPrice(array $data = [], ?\Closure $responder = null)
     {
         $query = new \Selena\Resources\Front\Queries\ApartmentPriceQuery($data);
 
@@ -49,7 +49,7 @@ class FrontApi extends BasicApi
      * @param \Closure|null $responder
      * @return mixed
      */
-    public function cityList(array $data = [], ?\Closure $responder = null): mixed
+    public function cityList(array $data = [], ?\Closure $responder = null)
     {
         $query = new \Selena\Resources\Front\Queries\CityListQuery($data);
 
@@ -64,7 +64,7 @@ class FrontApi extends BasicApi
      * @param \Closure|null $responder
      * @return mixed
      */
-    public function directionList(array $data = [], ?\Closure $responder = null): mixed
+    public function directionList(array $data = [], ?\Closure $responder = null)
     {
         $query = new \Selena\Resources\Front\Queries\DirectionListQuery($data);
 
@@ -79,7 +79,7 @@ class FrontApi extends BasicApi
      * @param \Closure|null $responder
      * @return mixed
      */
-    public function discountList(array $data = [], ?\Closure $responder = null): mixed
+    public function discountList(array $data = [], ?\Closure $responder = null)
     {
         $query = new \Selena\Resources\Front\Queries\DiscountListQuery($data);
 
@@ -94,7 +94,7 @@ class FrontApi extends BasicApi
      * @param \Closure|null $responder
      * @return mixed
      */
-    public function languages(array $data = [], ?\Closure $responder = null): mixed
+    public function languages(array $data = [], ?\Closure $responder = null)
     {
         $query = new \Selena\Resources\Front\Queries\LanguagesQuery($data);
 
@@ -109,7 +109,7 @@ class FrontApi extends BasicApi
      * @param \Closure|null $responder
      * @return mixed
      */
-    public function objectList(array $data = [], ?\Closure $responder = null): mixed
+    public function objectList(array $data = [], ?\Closure $responder = null)
     {
         $query = new \Selena\Resources\Front\Queries\ObjectListQuery($data);
 
@@ -124,7 +124,7 @@ class FrontApi extends BasicApi
      * @param \Closure|null $responder
      * @return mixed
      */
-    public function offers(array $data = [], ?\Closure $responder = null): mixed
+    public function offers(array $data = [], ?\Closure $responder = null)
     {
         $query = new \Selena\Resources\Front\Queries\OffersQuery($data);
 
@@ -139,7 +139,7 @@ class FrontApi extends BasicApi
      * @param \Closure|null $responder
      * @return mixed
      */
-    public function regionList(array $data = [], ?\Closure $responder = null): mixed
+    public function regionList(array $data = [], ?\Closure $responder = null)
     {
         $query = new \Selena\Resources\Front\Queries\RegionListQuery($data);
 
@@ -154,7 +154,7 @@ class FrontApi extends BasicApi
      * @param \Closure|null $responder
      * @return mixed
      */
-    public function roomList(array $data = [], ?\Closure $responder = null): mixed
+    public function roomList(array $data = [], ?\Closure $responder = null)
     {
         $query = new \Selena\Resources\Front\Queries\RoomListQuery($data);
 
@@ -169,7 +169,7 @@ class FrontApi extends BasicApi
      * @param \Closure|null $responder
      * @return mixed
      */
-    public function roomOccupiedSex(array $data = [], ?\Closure $responder = null): mixed
+    public function roomOccupiedSex(array $data = [], ?\Closure $responder = null)
     {
         $query = new \Selena\Resources\Front\Queries\RoomOccupiedSexQuery($data);
 
@@ -184,7 +184,7 @@ class FrontApi extends BasicApi
      * @param \Closure|null $responder
      * @return mixed
      */
-    public function serviceGroupList(array $data = [], ?\Closure $responder = null): mixed
+    public function serviceGroupList(array $data = [], ?\Closure $responder = null)
     {
         $query = new \Selena\Resources\Front\Queries\ServiceGroupListQuery($data);
 
@@ -199,7 +199,7 @@ class FrontApi extends BasicApi
      * @param \Closure|null $responder
      * @return mixed
      */
-    public function serviceList(array $data = [], ?\Closure $responder = null): mixed
+    public function serviceList(array $data = [], ?\Closure $responder = null)
     {
         $query = new \Selena\Resources\Front\Queries\ServiceListQuery($data);
 
@@ -214,7 +214,7 @@ class FrontApi extends BasicApi
      * @param \Closure|null $responder
      * @return mixed
      */
-    public function servicePrice(array $data = [], ?\Closure $responder = null): mixed
+    public function servicePrice(array $data = [], ?\Closure $responder = null)
     {
         $query = new \Selena\Resources\Front\Queries\ServicePriceQuery($data);
 
@@ -229,7 +229,7 @@ class FrontApi extends BasicApi
      * @param \Closure|null $responder
      * @return mixed
      */
-    public function tourDirectionList(array $data = [], ?\Closure $responder = null): mixed
+    public function tourDirectionList(array $data = [], ?\Closure $responder = null)
     {
         $query = new \Selena\Resources\Front\Queries\TourDirectionListQuery($data);
 
@@ -244,7 +244,7 @@ class FrontApi extends BasicApi
      * @param \Closure|null $responder
      * @return mixed
      */
-    public function tourList(array $data = [], ?\Closure $responder = null): mixed
+    public function tourList(array $data = [], ?\Closure $responder = null)
     {
         $query = new \Selena\Resources\Front\Queries\TourListQuery($data);
 
@@ -259,7 +259,7 @@ class FrontApi extends BasicApi
      * @param \Closure|null $responder
      * @return mixed
      */
-    public function tourPackList(array $data = [], ?\Closure $responder = null): mixed
+    public function tourPackList(array $data = [], ?\Closure $responder = null)
     {
         $query = new \Selena\Resources\Front\Queries\TourPackListQuery($data);
 
@@ -274,7 +274,7 @@ class FrontApi extends BasicApi
      * @param \Closure|null $responder
      * @return mixed
      */
-    public function tourStandList(array $data = [], ?\Closure $responder = null): mixed
+    public function tourStandList(array $data = [], ?\Closure $responder = null)
     {
         $query = new \Selena\Resources\Front\Queries\TourStandListQuery($data);
 
@@ -289,7 +289,7 @@ class FrontApi extends BasicApi
      * @param \Closure|null $responder
      * @return mixed
      */
-    public function transportList(array $data = [], ?\Closure $responder = null): mixed
+    public function transportList(array $data = [], ?\Closure $responder = null)
     {
         $query = new \Selena\Resources\Front\Queries\TransportListQuery($data);
 
@@ -304,7 +304,7 @@ class FrontApi extends BasicApi
      * @param \Closure|null $responder
      * @return mixed
      */
-    public function transportPointList(array $data = [], ?\Closure $responder = null): mixed
+    public function transportPointList(array $data = [], ?\Closure $responder = null)
     {
         $query = new \Selena\Resources\Front\Queries\TransportPointListQuery($data);
 
@@ -319,7 +319,7 @@ class FrontApi extends BasicApi
      * @param \Closure|null $responder
      * @return mixed
      */
-    public function tripListQuery(array $data = [], ?\Closure $responder = null): mixed
+    public function tripListQuery(array $data = [], ?\Closure $responder = null)
     {
         $query = new \Selena\Resources\Front\Queries\TripListQuery($data);
 
@@ -334,7 +334,7 @@ class FrontApi extends BasicApi
      * @param \Closure|null $responder
      * @return mixed
      */
-    public function unitList(array $data = [], ?\Closure $responder = null): mixed
+    public function unitList(array $data = [], ?\Closure $responder = null)
     {
         $query = new \Selena\Resources\Front\Queries\UnitListQuery($data);
 

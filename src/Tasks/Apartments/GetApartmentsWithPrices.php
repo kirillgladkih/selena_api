@@ -51,7 +51,7 @@ class GetApartmentsWithPrices implements TaskContract
      *
      * @return string
      */
-    public function tag(): string
+    public function tag()
     {
         $unitids = implode("_", $this->unitids);
 
@@ -62,7 +62,7 @@ class GetApartmentsWithPrices implements TaskContract
      *
      * @return callable
      */
-    public function get(): callable
+    public function get()
     {
         return function (ClientInterface $client) {
 

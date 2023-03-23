@@ -51,7 +51,7 @@ class GetApartmentDetail implements TaskContract
      *
      * @return string
      */
-    public function tag(): string
+    public function tag()
     {
         return self::class . "_{$this->objectid}_{$this->tourid}_{$this->apartmentid}";
     }
@@ -60,7 +60,7 @@ class GetApartmentDetail implements TaskContract
      *
      * @return callable
      */
-    public function get(): callable
+    public function get()
     {
         return function (ClientInterface $client) {
 

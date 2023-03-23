@@ -61,7 +61,7 @@ class ReserveTask implements TaskContract
      *
      * @return callable
      */
-    public function get(): callable
+    public function get()
     {
         return function (ClientInterface $client) {
 
