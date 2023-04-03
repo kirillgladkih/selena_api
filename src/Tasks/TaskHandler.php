@@ -37,7 +37,7 @@ class TaskHandler
      * @param TaskContract $task
      * @return mixed
      */
-    public function handleWithoutCache(TaskContract $task): mixed
+    public function handleWithoutCache(TaskContract $task)
     {
         $callable = $task->get();
 
@@ -50,7 +50,7 @@ class TaskHandler
      * @param int $cache_lifetime = 3600
      * @return mixed
      */
-    public function handleWithCache(TaskContract $task, int $cache_lifetime = 3600): mixed
+    public function handleWithCache(TaskContract $task, int $cache_lifetime = 3600)
     {
         $result = $this->cachePool->get($task->tag(), function(ItemInterface $item) use ($cache_lifetime, $task){
 

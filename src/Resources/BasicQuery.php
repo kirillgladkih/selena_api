@@ -60,7 +60,7 @@ abstract class BasicQuery
      * @param array $data
      * @return void
      */
-    protected function resolveParams(array $data): void
+    protected function resolveParams(array $data)
     {
         foreach ($this->attributes as $attribute)
             if ($param = $data[$attribute] ?? null)
@@ -83,7 +83,7 @@ abstract class BasicQuery
      * @param array<string> $attributes
      * @return void
      */
-    protected function setParamsInUrlQuery(array $attributes): void
+    protected function setParamsInUrlQuery(array $attributes)
     {
         $keys = array_intersect($attributes, $this->attributes);
 

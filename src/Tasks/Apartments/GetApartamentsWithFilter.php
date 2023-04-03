@@ -4,62 +4,44 @@ namespace Selena\Tasks\Apartments;
 
 use Psr\Http\Client\ClientInterface;
 use Selena\Exceptions\ApiException;
+use Selena\Filter\Apartment\MainApartmentFilter;
 use Selena\Helpers\ApartmentHelper;
 use Selena\Resources\Front\FrontApi;
 use Selena\Tasks\TaskContract;
 
-/**
- * Получить список апартаментов по палубам вместе с ценами и свободными местами
+/*
+ * Получить список апартаментов и отфильтровать их
  */
-class GetApartmentsWithPrices implements TaskContract
+
+class GetApartamentsWithFilter implements TaskContract
 {
     /**
-     * ID объекта размещения
+     * Filter
      *
-     * @var integer
+     * @var MainApartmentFilter
      */
-    protected int $objectid;
-    /**
-     * ID тура
-     *
-     * @var integer
-     */
-    protected int $tourid;
-    /**
-     * ID палубы
-     *
-     * @var integer[]
-     */
-    protected array $unitids;
-    /**
+    protected MainApartmentFilter $filter;
+    /*
      * Init
      *
-     * @param integer $objectid
-     * @param integer $tourid
-     * @param integer[] $unitids
      */
-    public function __construct(int $objectid, int $tourid, array $unitids = [])
+    public function __construct(MainApartmentFilter $filter)
     {
-        $this->objectid = $objectid;
-
-        $this->tourid = $tourid;
-
-        $this->unitids = $unitids;
+        $this->filter = $filter;
     }
-    /**
+    /*
      * Get tag name for cache
      *
      * @return string
      */
     public function tag()
     {
-        $unitids = implode("_", $this->unitids);
-
+    
         $class = preg_replace("/\//", "_", self::class);
 
-        return $class . "_{$this->objectid}_{$this->tourid}_{$unitids}";
+        return $class . "_" . http_build_query($this->filter->toArray());
     }
-    /**
+    /*
      * Get callable
      *
      * @return callable
@@ -76,36 +58,38 @@ class GetApartmentsWithPrices implements TaskContract
 
                 $apartments = [];
 
-                $apartmentQuery = ["objectid" => $this->objectid];
+                $apartmentQuery = ["objectid" => $this->filter->objectid];
                 /**
                  * Получение апартаметов по палубам
                  */
-                if (!empty($this->unitids)) {
+                if (!empty($this->filter->unitids)) {
 
-                    foreach ($this->unitids as $id) {
+                    foreach ($this->filter->unitids as $id) {
 
                         $apartmentQuery["unitid"] = $id;
 
                         $aps = $frontApi->apartmentList($apartmentQuery)["apartments"] ?? [];
 
-                        $apartments = array_merge($apartments, $aps);
+                        $apartmentsRaw = array_merge($apartments, $aps);
                     }
+                    
                 } else {
 
-                    $apartments = $frontApi->apartmentList($apartmentQuery)["apartments"] ?? [];
+                    $apartmentsRaw = $frontApi->apartmentList($apartmentQuery)["apartments"] ?? [];
+                
                 }
 
-                foreach ($apartments as $apartment) {
+                foreach ($apartmentsRaw as $key => $apartment) {
                     /**
                      * Вычисление разрешенных возрастных категорий
                      */
-                    $apartment["age_allows"] = [
+                    $apartmentItem["age_allows"] = [
                         "main_ages"  => ApartmentHelper::getAllowAges($apartment["main_ages"], $apartment["own_ages"]),
                         "child_ages" => ApartmentHelper::getAllowAges($apartment["child_ages"], $apartment["own_ages"]),
                         "add_ages"   => ApartmentHelper::getAllowAges($apartment["add_ages"], $apartment["own_ages"])
                     ];
 
-                    $pricesQuery = ["apartmentid" => $apartment["id"], "tourid" => $this->tourid];
+                    $pricesQuery = ["apartmentid" => $apartment["id"], "tourid" => $this->filter->tourid];
 
                     try {
                         /**
@@ -115,23 +99,27 @@ class GetApartmentsWithPrices implements TaskContract
 
                         ApartmentHelper::prepareRegularPrices($prices);
 
-                        $apartment["prices"] = $prices[0] ?? [];
+                        $apartmentItem["prices"] = $prices[0] ?? [];
 
-                        $offersQuery = ["apartmentid" => $apartment["id"], "tourid" => $this->tourid, "objectid" => $this->objectid];
+                        $offersQuery = ["apartmentid" => $apartment["id"], "tourid" => $this->filter->tourid, "objectid" => $this->filter->objectid];
 
                         $offer = $frontApi->offers($offersQuery)["offers"][0] ?? [];
 
-                        $apartment["amount_places"] = $offer["amount"] ?? null;
+                        $apartmentItem[$key]["amount_places"] = $offer["amount"] ?? null;
 
-                        $apartment["rooms"] = $offer["rooms"] ?? [];
+                        $apartmentItem["rooms"] = $offer["rooms"] ?? [];
 
-                        $result[] = $apartment;
-                    
+                        $apartments[] = $apartmentItem;
+
                     } catch (ApiException $exception) {
 
                         continue;
                     }
                 }
+
+                $this->filter->extend("apartments", $apartments);
+
+                $result = $this->filter->process();
 
             } catch (\Exception $exception) {
 

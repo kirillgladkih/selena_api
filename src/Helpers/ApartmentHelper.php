@@ -11,7 +11,7 @@ class ApartmentHelper
      * @param array $ageCategories
      * @return array
      */
-    public static function getAllowAges(string $map, array $ageCategories): array
+    public static function getAllowAges(string $map, array $ageCategories)
     {
         $result = [];
 
@@ -52,7 +52,7 @@ class ApartmentHelper
      * @param array $children
      * @return array
      */
-    public static function filterApartmentAndCalculatePrice(array $apartments, int $mainPlaces, array $children): array
+    public static function filterApartmentAndCalculatePrice($apartments, $mainPlaces, $children)
     {
         $childrenCount = count($children);
 
@@ -121,7 +121,7 @@ class ApartmentHelper
      * @param integer $age
      * @return integer|null
      */
-    public static function getPriceCategory(array $own_ages, int $age): ?int
+    public static function getPriceCategory(array $own_ages, int $age)
     {
         $category_id = null;
 

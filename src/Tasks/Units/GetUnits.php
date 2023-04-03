@@ -1,6 +1,6 @@
 <?php
 
-namespace Selena\Tasks\Subtasks;
+namespace Selena\Tasks\Units;
 
 use Psr\Http\Client\ClientInterface;
 use Selena\Exceptions\ApiException;
@@ -8,9 +8,9 @@ use Selena\Resources\Front\FrontApi;
 use Selena\Tasks\TaskContract;
 
 /**
- * Получить свободные места для тура
+ * Получить палубы
  */
-class GetOffersForTour implements TaskContract
+class GetUnits implements TaskContract
 {
     /**
      * ID объекта размещения
@@ -19,33 +19,24 @@ class GetOffersForTour implements TaskContract
      */
     protected int $objectid;
     /**
-     * ID тура
-     *
-     * @var integer
-     */
-    protected int $tourid;
-    /**
      * Init
      *
      * @param integer $objectid
-     * @param integer $tourid
      */
-    public function __construct(int $objectid, int $tourid)
+    public function __construct(int $objectid)
     {
         $this->objectid = $objectid;
-
-        $this->tourid = $tourid;
     }
     /**
      * Get tag name for cache
      *
      * @return string
      */
-    public function tag(): string
+    public function tag()
     {
         $class = preg_replace("/\//", "_", self::class);
 
-        return $class . "_{$this->objectid}_{$this->tourid}";
+        return $class . "_{$this->objectid}";
     }
     /**
      * Get callable
@@ -60,11 +51,11 @@ class GetOffersForTour implements TaskContract
 
                 $frontApi = new FrontApi($client);
 
-                $offers = $frontApi->offers(["objectid" => $this->objectid, "tourid" => $this->tourid]);
+                $result = $frontApi->unitList(["objectid" => $this->objectid]) ?? null;
 
-                foreach ($offers["offers"] ?? [] as $offer) $result = (int) ($result ?? 0) + (int) $offer["amount"] ?? 0;
-            
             } catch (ApiException $exception) {
+
+                dd($exception->getMessage());
 
                 $result = null;
             }

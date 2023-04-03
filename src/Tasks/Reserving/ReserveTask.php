@@ -52,16 +52,18 @@ class ReserveTask implements TaskContract
      *
      * @return string
      */
-    public function tag(): string
+    public function tag()
     {
-        return self::class;
+        $class = preg_replace("/\//", "_", self::class);
+
+        return $class;
     }
     /**
      * Get callable
      *
      * @return callable
      */
-    public function get(): callable
+    public function get()
     {
         return function (ClientInterface $client) {
 

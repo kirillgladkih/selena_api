@@ -30,7 +30,7 @@ abstract class BasicApi
      * @param \Closure|null $responder
      * @return mixed
      */
-    protected function respond(BasicQuery $query, ?\Closure $responder = null): mixed
+    protected function respond(BasicQuery $query, ?\Closure $responder = null)
     {
         $response = $query->resolve($this->client);
 
@@ -43,7 +43,7 @@ abstract class BasicApi
      * @param BasicQuery $query
      * @return mixed
      */
-    protected function defaultResponder(ResponseInterface $response, BasicQuery $query): mixed
+    protected function defaultResponder(ResponseInterface $response, BasicQuery $query)
     {
         $data = json_decode($response->getBody()->getContents(), true);
 

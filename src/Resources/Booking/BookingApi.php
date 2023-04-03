@@ -19,7 +19,7 @@ class BookingApi extends BasicApi
      * @param \Closure|null $responder
      * @return mixed
      */
-    public function reserve(array $data = [], ?\Closure $responder = null): mixed
+    public function reserve(array $data = [], ?\Closure $responder = null)
     {
         $query = new \Selena\Resources\Booking\Queries\ReserveQuery($data);
 
@@ -34,7 +34,7 @@ class BookingApi extends BasicApi
      * @param \Closure|null $responder
      * @return mixed
      */
-    public function cancelOrder(array $data = [], ?\Closure $responder = null): mixed
+    public function cancelOrder(array $data = [], ?\Closure $responder = null)
     {
         $query = new \Selena\Resources\Booking\Queries\CancelOrderQuery($data);
 

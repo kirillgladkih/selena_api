@@ -41,7 +41,7 @@ abstract class AbstractDto implements IDto
      * @param string $name
      * @return mixed
      */
-    public function __get(string $name): mixed
+    public function __get(string $name)
     {
         return $this->attributes[$name] ?? null;
     }
@@ -50,7 +50,7 @@ abstract class AbstractDto implements IDto
      *
      * @return array
      */
-    public function toArray(): array
+    public function toArray()
     {
         return $this->attributes;
     }

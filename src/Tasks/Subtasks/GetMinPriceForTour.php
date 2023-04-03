@@ -41,16 +41,18 @@ class GetMinPriceForTour implements TaskContract
      *
      * @return string
      */
-    public function tag(): string
+    public function tag()
     {
-        return self::class . "_{$this->objectid}_{$this->tourid}";
+        $class = preg_replace("/\//", "_", self::class);
+
+        return $class . "_{$this->objectid}_{$this->tourid}";
     }
     /**
      * Get callable
      *
      * @return callable
      */
-    public function get(): callable
+    public function get()
     {
         return function (ClientInterface $client) {
 
@@ -118,13 +120,11 @@ class GetMinPriceForTour implements TaskContract
                 }
 
                 $result = $minimumPrice;
-           
             } catch (\Exception $e) {
 
                 $result = null;
-           
             }
-           
+
             return $result;
         };
     }
