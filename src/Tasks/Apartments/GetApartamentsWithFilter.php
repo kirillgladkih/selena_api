@@ -36,8 +36,7 @@ class GetApartamentsWithFilter implements TaskContract
      */
     public function tag()
     {
-    
-        $class = preg_replace("/\//", "_", self::class);
+        $class = str_replace('\\', '_', self::class);
 
         return $class . "_" . http_build_query($this->filter->toArray());
     }
@@ -57,39 +56,20 @@ class GetApartamentsWithFilter implements TaskContract
                 $result = [];
 
                 $apartments = [];
-
-                $apartmentQuery = ["objectid" => $this->filter->objectid];
-                /**
-                 * Получение апартаметов по палубам
-                 */
-                if (!empty($this->filter->unitids)) {
-
-                    foreach ($this->filter->unitids as $id) {
-
-                        $apartmentQuery["unitid"] = $id;
-
-                        $aps = $frontApi->apartmentList($apartmentQuery)["apartments"] ?? [];
-
-                        $apartmentsRaw = array_merge($apartments, $aps);
-                    }
-                    
-                } else {
-
-                    $apartmentsRaw = $frontApi->apartmentList($apartmentQuery)["apartments"] ?? [];
                 
-                }
+                $items = $this->filter->apartments ?? [];
 
-                foreach ($apartmentsRaw as $key => $apartment) {
+                foreach ($items as $key => $item) {
                     /**
                      * Вычисление разрешенных возрастных категорий
                      */
-                    $apartmentItem["age_allows"] = [
-                        "main_ages"  => ApartmentHelper::getAllowAges($apartment["main_ages"], $apartment["own_ages"]),
-                        "child_ages" => ApartmentHelper::getAllowAges($apartment["child_ages"], $apartment["own_ages"]),
-                        "add_ages"   => ApartmentHelper::getAllowAges($apartment["add_ages"], $apartment["own_ages"])
+                    $item["age_allows"] = [
+                        "main_ages"  => ApartmentHelper::getAllowAges($item["main_ages"], $item["own_ages"]),
+                        "child_ages" => ApartmentHelper::getAllowAges($item["child_ages"], $item["own_ages"]),
+                        "add_ages"   => ApartmentHelper::getAllowAges($item["add_ages"], $item["own_ages"])
                     ];
 
-                    $pricesQuery = ["apartmentid" => $apartment["id"], "tourid" => $this->filter->tourid];
+                    $pricesQuery = ["apartmentid" => $item["id"], "tourid" => $this->filter->tourid];
 
                     try {
                         /**
@@ -99,17 +79,17 @@ class GetApartamentsWithFilter implements TaskContract
 
                         ApartmentHelper::prepareRegularPrices($prices);
 
-                        $apartmentItem["prices"] = $prices[0] ?? [];
+                        $item["prices"] = $prices[0] ?? [];
 
-                        $offersQuery = ["apartmentid" => $apartment["id"], "tourid" => $this->filter->tourid, "objectid" => $this->filter->objectid];
+                        $offersQuery = ["apartmentid" => $item["id"], "tourid" => $this->filter->tourid, "objectid" => $this->filter->objectid];
 
                         $offer = $frontApi->offers($offersQuery)["offers"][0] ?? [];
 
-                        $apartmentItem[$key]["amount_places"] = $offer["amount"] ?? null;
+                        $item[$key]["amount_places"] = $offer["amount"] ?? null;
 
-                        $apartmentItem["rooms"] = $offer["rooms"] ?? [];
+                        $item["rooms"] = $offer["rooms"] ?? [];
 
-                        $apartments[] = $apartmentItem;
+                        $apartments[] = $item;
 
                     } catch (ApiException $exception) {
 

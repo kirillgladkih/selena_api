@@ -102,11 +102,9 @@ class ApartmentHelper
                             }
                         }
                     }
-
                 } else {
 
                     $result[] = $apartment;
-                
                 }
             }
         }
@@ -140,5 +138,23 @@ class ApartmentHelper
         }
 
         return $category_id;
+    }
+    /**
+     * Search price by apartment id
+     *
+     * @param array $prices
+     * @param string $priceName
+     * @param integer $apartmentId
+     * @return float|null
+     */
+    public static function searchPriceByApartmentId(array $prices, string $priceName, int $apartmentId)
+    {
+        foreach ($prices as $items)
+            if ($items["apartmentid"] == $apartmentId)
+                foreach ($items["prices"] as $key => $value)
+                    if ($key == $priceName)
+                        return (float) $value;
+
+        return null;
     }
 }

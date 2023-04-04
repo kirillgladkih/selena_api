@@ -3,6 +3,7 @@
 namespace Selena\Tasks\Apartments;
 
 use Psr\Http\Client\ClientInterface;
+use Selena\Helpers\ApartmentHelper;
 use Selena\Resources\Front\FrontApi;
 use Selena\Tasks\TaskContract;
 
@@ -46,7 +47,7 @@ class GetApartments implements TaskContract
     {
         $unitids = implode("_", $this->unitids);
 
-        $class = preg_replace("/\//", "_", self::class);
+        $class = str_replace('\\', '_', self::class);
 
         return $class . "_{$this->objectid}_{$unitids}";
     }
@@ -62,8 +63,6 @@ class GetApartments implements TaskContract
             try {
 
                 $frontApi = new FrontApi($client);
-
-                $result = [];
 
                 $apartments = [];
 
@@ -86,7 +85,19 @@ class GetApartments implements TaskContract
                     $apartments = $frontApi->apartmentList($apartmentQuery)["apartments"] ?? [];
                 }
 
-                $result = $apartments;
+                foreach ($apartments as $key => $item) {
+                    /**
+                     * Вычисление разрешенных возрастных категорий
+                     */
+                    $item["age_allows"] = [
+                        "main_ages"  => ApartmentHelper::getAllowAges($item["main_ages"], $item["own_ages"]),
+                        "child_ages" => ApartmentHelper::getAllowAges($item["child_ages"], $item["own_ages"]),
+                        "add_ages"   => ApartmentHelper::getAllowAges($item["add_ages"], $item["own_ages"])
+                    ];
+
+                    $result[] = $item;
+                }
+            
             } catch (\Exception $exception) {
 
                 $result = null;

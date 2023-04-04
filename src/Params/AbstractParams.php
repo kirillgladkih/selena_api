@@ -1,8 +1,8 @@
 <?php
 
-namespace Selena\Filter;
+namespace Selena\Params;
 
-abstract class AbstractFilter
+abstract class AbstractParams
 {
     /**
      * Params
@@ -65,12 +65,6 @@ abstract class AbstractFilter
     {
         return $this->attributes;
     }
-    /**
-     * Filter action
-     *
-     * @return mixed
-     */
-    abstract public function process();
     /**
      * Prepare params
      *

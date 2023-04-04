@@ -1,11 +1,11 @@
 <?php
 
-namespace Selena\Filter\Apartment;
+namespace Selena\Params\Apartment;
 
-use Selena\Filter\AbstractFilter;
 use Selena\Helpers\ApartmentHelper;
+use Selena\Params\AbstractParams;
 
-class MainApartmentFilter extends AbstractFilter
+class MainApartmentParams extends AbstractParams
 {
     /**
      * Params
@@ -21,14 +21,14 @@ class MainApartmentFilter extends AbstractFilter
          * Param array
          */
         "unitids", 
-        /**
-         * Param int
-         */
-        "mainPlaces",
-        /**
-         * Param array
-         */ 
-        "children",
+        // /**
+        //  * Param int
+        //  */
+        // "mainPlaces",
+        // /**
+        //  * Param array
+        //  */ 
+        // "children",
         /**
          * Param int
          */

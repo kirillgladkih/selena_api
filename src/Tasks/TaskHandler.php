@@ -53,7 +53,7 @@ class TaskHandler
     public function handleWithCache(TaskContract $task, int $cache_lifetime = 3600)
     {
         $result = $this->cachePool->get($task->tag(), function(ItemInterface $item) use ($cache_lifetime, $task){
-
+            
             $item->expiresAfter($cache_lifetime);
 
             return $this->handleWithoutCache($task);

@@ -54,7 +54,7 @@ class ReserveTask implements TaskContract
      */
     public function tag()
     {
-        $class = preg_replace("/\//", "_", self::class);
+        $class = str_replace('\\', '_', self::class);
 
         return $class;
     }
