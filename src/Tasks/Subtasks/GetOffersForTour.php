@@ -41,7 +41,7 @@ class GetOffersForTour implements TaskContract
      *
      * @return string
      */
-    public function tag(): string
+    public function tag()
     {
         $class = str_replace('\\', '_', self::class);
 

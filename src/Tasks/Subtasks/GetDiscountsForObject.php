@@ -32,7 +32,7 @@ class GetDiscountsForObject implements TaskContract
      *
      * @return string
      */
-    public function tag() 
+    public function tag()
     {
         $class = str_replace('\\', '_', self::class);
 

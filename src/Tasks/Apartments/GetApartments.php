@@ -80,6 +80,7 @@ class GetApartments implements TaskContract
 
                         $apartments = array_merge($apartments, $aps);
                     }
+                    
                 } else {
 
                     $apartments = $frontApi->apartmentList($apartmentQuery)["apartments"] ?? [];

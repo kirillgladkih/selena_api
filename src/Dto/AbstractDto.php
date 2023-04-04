@@ -60,7 +60,7 @@ abstract class AbstractDto implements IDto
      * @param array $data
      * @return self
      */
-    public function fill(array $data): self
+    public function fill(array $data)
     {
         foreach($data as $key => $value)
             if(isset($key, $this->fillable))
