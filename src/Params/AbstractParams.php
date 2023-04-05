@@ -43,7 +43,7 @@ abstract class AbstractParams
      */
     public function __set($name, $value)
     {
-        if (isset($this->params[$name])) $this->attributes[$name] = $value;
+        if (in_array($name, $this->params)) $this->attributes[$name] = $value;
     }
     /**
      * Extend attributes
@@ -54,7 +54,7 @@ abstract class AbstractParams
      */
     public function extend($name, $value)
     {
-        if (!isset($this->attributes[$name])) $this->attributes[$name] = $value;
+        if (!in_array($name, $this->params)) $this->attributes[$name] = $value;
     }
     /**
      * Array serialization
