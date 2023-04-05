@@ -21,14 +21,6 @@ class MainApartmentParams extends AbstractParams
          * Param array
          */
         "unitids", 
-        // /**
-        //  * Param int
-        //  */
-        // "mainPlaces",
-        // /**
-        //  * Param array
-        //  */ 
-        // "children",
         /**
          * Param int
          */

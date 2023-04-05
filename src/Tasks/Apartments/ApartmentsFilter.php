@@ -56,17 +56,7 @@ class ApartmentsFilter implements TaskContract
 
                 foreach ($this->params->apartments as $apartment) {
 
-                    // $apartment["global_price"] = 0.00;
-
                     if (($this->params->mainPlaces <= (int) $apartment["places"]) && ($childrenCount <= (int) $apartment["childplaces"])) {
-
-                        // $category_id = ApartmentHelper::getPriceCategory($apartment["own_ages"], 17) ?? "";
-
-                        // $priceName = "price_m{$category_id}";
-
-                        // $price = (float) ($apartment["prices"][$priceName] ?? 0.00);
-
-                        // $apartment["global_price"] =  $apartment["global_price"] + ($price * $this->mainPlaces);
 
                         $childAgesCount = count($apartment["age_allows"]["child_ages"]);
 
@@ -86,29 +76,24 @@ class ApartmentsFilter implements TaskContract
 
                                     if ($childrenAgeCondition) {
 
-                                        // $category_id = ApartmentHelper::getPriceCategory($apartment["own_ages"], $age) ?? "";
-
-                                        // $priceName = "price_c{$category_id}";
-
-                                        // $price = (float) ($apartment["prices"][$priceName] ?? 0.00);
-
-                                        // $apartment["global_price"] = $apartment["global_price"] +  $price;
-
                                         $result[] = $apartment;
 
                                         break;
                                     }
                                 }
                             }
+
                         } else {
 
                             $result[] = $apartment;
                         }
                     }
                 }
+
             } catch (\Exception $exception) {
-                dd($exception->getMessage());
+
                 $result = null;
+
             }
 
             return $result;
