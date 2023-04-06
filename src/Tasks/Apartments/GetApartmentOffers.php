@@ -77,7 +77,7 @@ class GetApartmentOffers implements TaskContract
                             $rooms = $offer["rooms"] ?? [];
 
                             foreach($rooms as $room)
-                                if(!empty($room)) $item["rooms"] = $room;
+                                if(!empty($room)) $item["rooms"][] = $room;
 
                             $result[] = $item;
                         }

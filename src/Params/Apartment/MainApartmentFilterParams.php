@@ -18,10 +18,6 @@ class MainApartmentFilterParams extends AbstractParams
          */
         "apartments",
         /**
-         * Array offers from GetApartmentsOffers task
-         */
-        "offers",
-        /**
          * Array children age, ex: [5, 4]
          */
         "children",
