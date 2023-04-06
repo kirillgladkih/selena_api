@@ -53,7 +53,9 @@ class GetApartmentDetail implements TaskContract
      */
     public function tag()
     {
-        return self::class . "_{$this->objectid}_{$this->tourid}_{$this->apartmentid}";
+        $class = str_replace('\\', '_', self::class);
+
+        return $class . "_{$this->objectid}_{$this->tourid}_{$this->apartmentid}";
     }
     /**
      * Get callable
