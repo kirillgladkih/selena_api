@@ -29,7 +29,7 @@ class TaskHandler
     {
         $this->client = $client;
 
-        $this->cachePool = new FilesystemAdapter("task_cache");
+        $this->cachePool = new FilesystemAdapter("task_cache", 0, __DIR__ . "/../../cache");
     }
     /**
      * Resolve task
