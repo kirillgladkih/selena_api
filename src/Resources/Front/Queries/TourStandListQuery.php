@@ -22,7 +22,7 @@ class TourStandListQuery extends BasicQuery
      *
      * @var string
      */
-    protected string $url = "https://selena-online.ru/rest/v1/tourpacklist";
+    protected string $url = "https://selena-online.ru/rest/v1/tourstandlist";
     /**
      * Method
      *

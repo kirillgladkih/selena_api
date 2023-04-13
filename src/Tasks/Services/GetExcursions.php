@@ -16,33 +16,25 @@ class GetExcursions implements TaskContract
     /**
      * Tour id
      *
-     * @var integer
+     * @var int
      */
-    protected int $tourId;
+    protected int $tourid;
     /**
      * Object id
      *
      * @var integer
      */
     protected int $objectid;
-    /**
-     * Cache helper
-     *
-     * @var CacheHelper
-     */
-    protected CacheHelper $cacheHelper;
     /*
      * Init
      *
      * @param integer $objectid
      */
-    public function __construct(int $tourId, int $objectid)
+    public function __construct(int $tourid, int $objectid)
     {
-        $this->tourId = $tourId;
+        $this->tourid = $tourid;
 
         $this->objectid = $objectid;
-
-        $this->cacheHelper = new CacheHelper();
     }
     /*
      * Get tag name for cache
@@ -51,11 +43,9 @@ class GetExcursions implements TaskContract
      */
     public function tag()
     {
-        // $ids = implode("_", $this->tourIds);
-
         $class = str_replace('\\', '_', self::class);
 
-        return $class . "_{$this->tourId}";
+        return $class . "_{$this->tourid}_{$this->objectid}";
     }
     /*
      * Get callable
@@ -70,28 +60,50 @@ class GetExcursions implements TaskContract
 
                 $frontApi = new FrontApi($client);
 
-                $data = $this->getDataWithCache($frontApi);
+                $result = [];
 
-                $groupIds = [];
+                $tour = $frontApi->tourList(["objectid" => $this->objectid, "tourid" => $this->tourid])["tours"][0] ?? [];
 
-                foreach($data["groups"] ?? [] as $group)                    
-                    if(in_array($this->tourId, $group["tour_ids" ?? []]))
-                        $groupIds[] = $group["groupid"];
+                $excursions = $frontApi->tourStandList(["tourid" => $this->tourid])["tourstands"] ?? [];
 
-                foreach($data["excursions"] ?? [] as $excursion){
-                    
-                    if(in_array($excursion["groupid"] ?? "", $groupIds)){
+                foreach($excursions as $key => $excursion){
 
-                        if(!isset($result["group"])) $result["group"] = $data["tour"][0] ?? [];
+                    if(!isset($excursion["begindate"])) $excursions[$key]["begindate"] = $excursion["enddate"];
 
-                        $result["group"]["excursions"][] = $excursion; 
+                    if(!isset($excursion["enddate"])) $excursions[$key]["enddate"] = $excursion["begindate"];
 
-                    }
                 }
 
-                sort($result["group"]["excursions"]);
+                usort($excursions, fn ($a, $b) => $a["begindate"] <=> $b["begindate"]);
+
+                $start = $excursions[0]["begindate"] ?? $excursions[0]["enddate"];
+
+                $day = 1;
+
+                if ($start) {
+
+                    foreach ($excursions as $key => $excursion) {
+ 
+
+                        if(date("Y-m-d", strtotime($excursion["begindate"])) > date("Y-m-d", strtotime($start))) {
+                            
+                            $start = $excursion["begindate"] ?? $excursion["enddate"];
+
+                            $day += 1;
+                        
+                        }
+
+                        $excursions[$key]["day"] = $day;
 
 
+                    }
+
+                    $result = [
+                        "tour" => $tour,
+                        "excursions" => $excursions
+                    ];
+
+                }
             } catch (\Exception $exception) {
 
                 $result = null;
@@ -99,30 +111,5 @@ class GetExcursions implements TaskContract
 
             return $result;
         };
-    }
-    /**
-     * Get data with cahce
-     *
-     * @return array
-     */
-    private function getDataWithCache($frontApi)
-    {
-        $tourParams = ["objectid" => $this->objectid, "tourid" => $this->tourId];
-               
-        $groupsParams = ["objectid" => $this->objectid, "tourid" => $this->tourId];
-
-        $excursionsParams = ["objectid" => $this->objectid];
-
-        $tourClosure = fn() => $frontApi->tourList($tourParams);
-
-        $groupsClosure = fn() => $frontApi->serviceGroupList($groupsParams);
-
-        $excursionsClosure = fn() => $frontApi->serviceList($excursionsParams);
-
-        return [
-            "tour" => $this->cacheHelper->withCache( "tours_" . http_build_query([$tourParams]), $tourClosure)["tours"] ?? [],
-            "groups" => $this->cacheHelper->withCache( "group_" . http_build_query([$groupsParams]), $groupsClosure)["servicegroups"] ?? [],
-            "excursions" => $this->cacheHelper->withCache( "excursion_" . http_build_query([$excursionsParams]), $excursionsClosure)["services"] ?? []
-        ];
     }
 }
