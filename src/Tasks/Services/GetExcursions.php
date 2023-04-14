@@ -104,7 +104,6 @@ class GetExcursions implements TaskContract
                         $result["excursions"][$day] = $excursion;
 
                     }
-                    dd($result);
                 }
             } catch (\Exception $exception) {
 
