@@ -3,7 +3,6 @@
 namespace Selena\Tasks\Services;
 
 use Psr\Http\Client\ClientInterface;
-use Selena\Helpers\CacheHelper;
 use Selena\Resources\Front\FrontApi;
 use Selena\Tasks\TaskContract;
 
@@ -66,6 +65,8 @@ class GetExcursions implements TaskContract
 
                 $excursions = $frontApi->tourStandList(["tourid" => $this->tourid])["tourstands"] ?? [];
 
+                $result["tour"] = $tour;
+
                 foreach($excursions as $key => $excursion){
 
                     if(!isset($excursion["begindate"])) $excursions[$key]["begindate"] = $excursion["enddate"];
@@ -93,16 +94,17 @@ class GetExcursions implements TaskContract
                         
                         }
 
-                        $excursions[$key]["day"] = $day;
 
+                        $time_duration = strtotime($excursion["enddate"]) - strtotime($excursion["begindate"]);
+
+                        $excursion["time_duration"] = $time_duration / 3600;
+
+                        $excursion["day"] = $day;                        
+
+                        $result["excursions"][$day] = $excursion;
 
                     }
-
-                    $result = [
-                        "tour" => $tour,
-                        "excursions" => $excursions
-                    ];
-
+                    dd($result);
                 }
             } catch (\Exception $exception) {
 
