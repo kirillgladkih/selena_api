@@ -56,10 +56,15 @@ class TaskHandler
             
             $item->expiresAfter($cache_lifetime);
 
-            return $this->handleWithoutCache($task);
+            $data = $this->handleWithoutCache($task);
+
+            return !empty($data) ? $this->handleWithoutCache($task) : null;
 
         });
 
+        if(empty($result)) $this->cachePool->delete($task->tag());
+
+        
         return $result;
     }
 }
