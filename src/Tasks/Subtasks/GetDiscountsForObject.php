@@ -36,7 +36,7 @@ class GetDiscountsForObject implements TaskContract
     {
         $class = str_replace('\\', '_', self::class);
 
-        return $class . "_{$this->objectid}"; 
+        return $class . "_{$this->objectid}";
     }
     /**
      * Get callable
@@ -46,20 +46,14 @@ class GetDiscountsForObject implements TaskContract
     public function get()
     {
         return function (ClientInterface $client) {
-            
-            try {
-             
-                $frontApi = new FrontApi($client);
 
-                $result = $frontApi->discountList(["objectid" => $this->objectid])["discounts"] ?? [];
 
-            } catch (\Exception $e) {
+            $frontApi = new FrontApi($client);
 
-                $result = null;
+            $result = $frontApi->discountList(["objectid" => $this->objectid])["discounts"] ?? [];
 
-            }
+            return $result ?? null;
 
-            return $result;
         };
     }
 }

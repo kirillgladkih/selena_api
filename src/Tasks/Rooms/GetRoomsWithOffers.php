@@ -62,36 +62,31 @@ class GetRoomsWithOffers implements TaskContract
     {
         return function (ClientInterface $client) {
 
-            try {
 
-                $frontApi = new FrontApi($client);
+            $frontApi = new FrontApi($client);
 
-                $rooms = $frontApi->roomList(["apartmentid" => $this->apartmentid])["rooms"] ?? [];
+            $rooms = $frontApi->roomList(["apartmentid" => $this->apartmentid])["rooms"] ?? [];
 
-                $offerRooms = $frontApi->offers([
-                    "tourid" => $this->tourid, "apartmentid" => $this->apartmentid, "objectid" => $this->objectid
-                ])["offers"][0]["rooms"] ?? [];
+            $offerRooms = $frontApi->offers([
+                "tourid" => $this->tourid, "apartmentid" => $this->apartmentid, "objectid" => $this->objectid
+            ])["offers"][0]["rooms"] ?? [];
 
-                $offerRooms = array_filter($offerRooms, fn ($item) => !empty($item));
+            $offerRooms = array_filter($offerRooms, fn ($item) => !empty($item));
 
-                foreach ($rooms as $room) {
+            foreach ($rooms as $room) {
 
-                    $offerRoom = array_values(
-                        array_filter(
-                            $offerRooms,
-                            fn ($item) => $item["roomid"] == $room["id"]
-                        )
-                    );
+                $offerRoom = array_values(
+                    array_filter(
+                        $offerRooms,
+                        fn ($item) => $item["roomid"] == $room["id"]
+                    )
+                );
 
-                    $room["amount"] = $offerRoom[0]["amount"] ?? 0;
+                $room["amount"] = $offerRoom[0]["amount"] ?? 0;
 
-                    $result[] = $room;
-                }
-
-            } catch (\Exception $exception) {
-
-                $result = null;
+                $result[] = $room;
             }
+
 
             return $result ?? null;
         };

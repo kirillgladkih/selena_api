@@ -66,50 +66,44 @@ class GetApartmentDetail implements TaskContract
     {
         return function (ClientInterface $client) {
 
-            try {
 
-                $frontApi = new FrontApi($client);
+            $frontApi = new FrontApi($client);
 
-                $result = [];
+            $result = [];
 
-                $apartmentQuery = ["objectid" => $this->objectid, "apartmentid" => $this->apartmentid];
+            $apartmentQuery = ["objectid" => $this->objectid, "apartmentid" => $this->apartmentid];
 
-                $apartment = $frontApi->apartmentList($apartmentQuery)["apartments"][0] ?? [];
+            $apartment = $frontApi->apartmentList($apartmentQuery)["apartments"][0] ?? [];
 
-                if (!empty($apartment)) {
+            if (!empty($apartment)) {
 
-                    $apartment["age_allows"] = [
-                        "main_ages"  => ApartmentHelper::getAllowAges($apartment["main_ages"], $apartment["own_ages"]),
-                        "child_ages" => ApartmentHelper::getAllowAges($apartment["child_ages"], $apartment["own_ages"]),
-                        "add_ages"   => ApartmentHelper::getAllowAges($apartment["add_ages"], $apartment["own_ages"])
-                    ];
+                $apartment["age_allows"] = [
+                    "main_ages"  => ApartmentHelper::getAllowAges($apartment["main_ages"], $apartment["own_ages"]),
+                    "child_ages" => ApartmentHelper::getAllowAges($apartment["child_ages"], $apartment["own_ages"]),
+                    "add_ages"   => ApartmentHelper::getAllowAges($apartment["add_ages"], $apartment["own_ages"])
+                ];
 
-                    $pricesQuery = ["apartmentid" => $apartment["id"], "tourid" => $this->tourid];
+                $pricesQuery = ["apartmentid" => $apartment["id"], "tourid" => $this->tourid];
 
-                    $prices = $frontApi->apartmentPrice($pricesQuery)["apartmentprices"] ?? [];
+                $prices = $frontApi->apartmentPrice($pricesQuery)["apartmentprices"] ?? [];
 
-                    ApartmentHelper::prepareRegularPrices($prices);
+                ApartmentHelper::prepareRegularPrices($prices);
 
-                    $apartment["prices"] = $prices[0] ?? [];
+                $apartment["prices"] = $prices[0] ?? [];
 
-                    $offersQuery = ["apartmentid" => $apartment["id"], "tourid" => $this->tourid, "objectid" => $this->objectid];
+                $offersQuery = ["apartmentid" => $apartment["id"], "tourid" => $this->tourid, "objectid" => $this->objectid];
 
-                    $offer = $frontApi->offers($offersQuery)["offers"][0] ?? [];
+                $offer = $frontApi->offers($offersQuery)["offers"][0] ?? [];
 
-                    $apartment["amount_places"] = $offer["amount"] ?? null;
+                $apartment["amount_places"] = $offer["amount"] ?? null;
 
-                    $apartment["rooms"] = $offer["rooms"] ?? [];
+                $apartment["rooms"] = $offer["rooms"] ?? [];
 
-                    $result[] = $apartment;
-            
-                }
-            
-            } catch (\Exception $exception) {
-
-                $result = null;
+                $result[] = $apartment;
             }
 
-            return $result;
+            return $result ?? null;
+
         };
     }
 }

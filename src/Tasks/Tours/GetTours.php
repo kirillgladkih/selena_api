@@ -44,11 +44,10 @@ class GetTours implements TaskContract
     public function __construct(int $objectid, ?DateTime $from, ?DateTime $to)
     {
         $this->objectid = $objectid;
-        
+
         $this->from = $from ? $from->format("Y-m-d") : "";
 
         $this->to = $to ? $to->format("Y-m-d") : "";
-
     }
     /**
      * Get tag name for cache
@@ -70,32 +69,24 @@ class GetTours implements TaskContract
     {
         return function (ClientInterface $client) {
 
-            try {
+            $frontApi = new FrontApi($client);
 
-                $frontApi = new FrontApi($client);
+            $query = ["objectid" => $this->objectid];
 
-                $query = ["objectid" => $this->objectid];
+            if (!empty($this->from)) $query["from"] = $this->from;
 
-                if(!empty($this->from)) $query["from"] = $this->from;
+            if (!empty($this->to)) $query["to"] = $this->to;
 
-                if(!empty($this->to)) $query["to"] = $this->to;
+            $tours = $frontApi->tourList($query)["tours"] ?? [];
 
-                $tours = $frontApi->tourList($query)["tours"] ?? [];
+            foreach ($tours as $tour) {
 
-                foreach($tours as $tour){
+                $item = ["tour" => $tour];
 
-                    $item = ["tour" => $tour];
-
-                    $result["tours"][] = $item;
-
-                }
-
-            } catch (ApiException $exception) {
-
-                $result = null;
+                $result["tours"][] = $item;
             }
 
-            return $result;
+            return $result ?? null;
         };
     }
 }

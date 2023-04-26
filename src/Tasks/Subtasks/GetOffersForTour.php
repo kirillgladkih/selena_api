@@ -56,20 +56,14 @@ class GetOffersForTour implements TaskContract
     {
         return function (ClientInterface $client) {
 
-            try {
 
-                $frontApi = new FrontApi($client);
+            $frontApi = new FrontApi($client);
 
-                $offers = $frontApi->offers(["objectid" => $this->objectid, "tourid" => $this->tourid]);
+            $offers = $frontApi->offers(["objectid" => $this->objectid, "tourid" => $this->tourid]);
 
-                foreach ($offers["offers"] ?? [] as $offer) $result = (int) ($result ?? 0) + (int) $offer["amount"] ?? 0;
+            foreach ($offers["offers"] ?? [] as $offer) $result = (int) ($result ?? 0) + (int) $offer["amount"] ?? 0;
             
-            } catch (ApiException $exception) {
-
-                $result = null;
-            }
-
-            return $result;
+            return $result ?? null;
         };
     }
 }

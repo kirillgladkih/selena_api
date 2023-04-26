@@ -56,45 +56,40 @@ class GetApartmentOffers implements TaskContract
     {
         return function (ClientInterface $client) {
 
-            try {
 
-                $frontApi = new FrontApi($client);
+            $frontApi = new FrontApi($client);
 
-                foreach ($this->apartments ?? [] as $key => $item) {
+            foreach ($this->apartments ?? [] as $key => $item) {
 
-                    try {
+                try {
 
-                        $offersQuery = ["apartmentid" => $item["id"], "tourid" => $this->params->tourid, "objectid" => $this->params->objectid];
+                    $offersQuery = ["apartmentid" => $item["id"], "tourid" => $this->params->tourid, "objectid" => $this->params->objectid];
 
-                        $offer = $frontApi->offers($offersQuery)["offers"][0] ?? [];
+                    $offer = $frontApi->offers($offersQuery)["offers"][0] ?? [];
 
-                        $amount = $offer["amount"] ?? null;
+                    $amount = $offer["amount"] ?? null;
 
-                        if (!is_null($amount)){
+                    if (!is_null($amount)) {
 
-                            $item = ["apartmentid" => $item["id"], "amount_places" => $amount];
+                        $item = ["apartmentid" => $item["id"], "amount_places" => $amount];
 
-                            $rooms = $offer["rooms"] ?? [];
+                        $rooms = $offer["rooms"] ?? [];
 
-                            foreach($rooms as $room)
-                                if(!empty($room)) $item["rooms"][] = $room;
+                        foreach ($rooms as $room)
+                            if (!empty($room)) $item["rooms"][] = $room;
 
-                            $result[] = $item;
-                        }
-                        /**
-                         * Exception
-                         */
-                    } catch (ApiException $exception) {
-
-                        continue;
+                        $result[] = $item;
                     }
-                }
-            } catch (\Exception $exception) {
+                    /**
+                     * Exception
+                     */
+                } catch (ApiException $exception) {
 
-                $result = null;
+                    continue;
+                }
             }
 
-            return $result;
+            return $result ?? null;
         };
     }
 }

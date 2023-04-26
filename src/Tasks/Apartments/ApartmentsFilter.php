@@ -50,53 +50,45 @@ class ApartmentsFilter implements TaskContract
     {
         return function (ClientInterface $client) {
 
-            try {
+            $childrenCount = count(($this->params->children ?? []));
 
-                $childrenCount = count(($this->params->children ?? []));
+            foreach ($this->params->apartments as $apartment) {
 
-                foreach ($this->params->apartments as $apartment) {
+                if (($this->params->mainPlaces <= (int) $apartment["places"]) && ($childrenCount <= (int) $apartment["childplaces"])) {
 
-                    if (($this->params->mainPlaces <= (int) $apartment["places"]) && ($childrenCount <= (int) $apartment["childplaces"])) {
+                    $childAgesCount = count($apartment["age_allows"]["child_ages"]);
 
-                        $childAgesCount = count($apartment["age_allows"]["child_ages"]);
+                    if ($childrenCount >= 1) {
 
-                        if ($childrenCount >= 1) {
+                        if ($childAgesCount >= 1) {
 
-                            if ($childAgesCount >= 1) {
+                            $from = (int) ($apartment["age_allows"]["child_ages"][0]["from"] ?? 0);
 
-                                $from = (int) ($apartment["age_allows"]["child_ages"][0]["from"] ?? 0);
+                            $to = (int) ($apartment["age_allows"]["child_ages"][$childAgesCount - 1]["to"] ?? 16);
 
-                                $to = (int) ($apartment["age_allows"]["child_ages"][$childAgesCount - 1]["to"] ?? 16);
+                            $childrenAgeCondition = true;
 
-                                $childrenAgeCondition = true;
+                            foreach ($this->params->children as $age) {
 
-                                foreach ($this->params->children as $age) {
+                                $childrenAgeCondition = $age <= $to && $age >= $from;
 
-                                    $childrenAgeCondition = $age <= $to && $age >= $from;
+                                if ($childrenAgeCondition) {
 
-                                    if ($childrenAgeCondition) {
+                                    $result[] = $apartment;
 
-                                        $result[] = $apartment;
-
-                                        break;
-                                    }
+                                    break;
                                 }
                             }
-
-                        } else {
-
-                            $result[] = $apartment;
                         }
+                    } else {
+
+                        $result[] = $apartment;
                     }
                 }
-
-            } catch (\Exception $exception) {
-
-                $result = null;
-
             }
 
-            return $result;
+
+            return $result ?? null;
         };
     }
 }

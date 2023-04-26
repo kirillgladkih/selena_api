@@ -56,74 +56,69 @@ class GetMinPriceForTour implements TaskContract
     {
         return function (ClientInterface $client) {
 
-            try {
 
-                $frontApi = new FrontApi($client);
+            $frontApi = new FrontApi($client);
 
-                $tour = $frontApi->tourList(["objectid" => $this->objectid, "tourid" => $this->tourid]);
+            $tour = $frontApi->tourList(["objectid" => $this->objectid, "tourid" => $this->tourid]);
 
-                $offers = $frontApi->offers(["objectid" => $this->objectid, "tourid" => $this->tourid])["offers"] ?? [];
+            $offers = $frontApi->offers(["objectid" => $this->objectid, "tourid" => $this->tourid])["offers"] ?? [];
 
-                $allowApartments = [];
+            $allowApartments = [];
 
-                $prices = [];
+            $prices = [];
 
-                foreach ($offers as $offer) $allowApartments[] = $offer["apartmentid"];
-                /**
-                 * Получение апартаментов
-                 */
-                if (!$apartmentIds = $tour["tours"][0]["apartment_ids"] ?? null) {
+            foreach ($offers as $offer) $allowApartments[] = $offer["apartmentid"];
+            /**
+             * Получение апартаментов
+             */
+            if (!$apartmentIds = $tour["tours"][0]["apartment_ids"] ?? null) {
 
-                    $apartments = $frontApi->apartmentList(["objectid" => $this->objectid]);
+                $apartments = $frontApi->apartmentList(["objectid" => $this->objectid]);
 
-                    foreach ($apartments["apartments"] ?? [] as $apartment)
-                        if (in_array($apartment["id"], $allowApartments))
-                            $apartmentIds[] = $apartment["id"];
-                }
-                /**
-                 * Формирование масива цен для сравнения
-                 */
-                foreach ($apartmentIds as $apartmentId) {
-
-                    try {
-
-                        $price = $frontApi->apartmentPrice(["apartmentid" => $apartmentId, "tourid" => $this->tourid])["apartmentprices"][0] ?? [];
-
-                        $prices[$apartmentId] = $price;
-                        /**
-                         * Если цена не была найдена идем дальше
-                         */
-                    } catch (ApiException $exception) {
-
-                        continue;
-                    }
-                }
-                /**
-                 * Поиск минимальной цены (учитывается только минимальная цена основного места)
-                 */
-                foreach ($prices as $itemPrice) {
-
-                    $priceKeys = preg_grep("/price_m/", array_keys($itemPrice));
-
-                    foreach ($priceKeys ?? [] as $priceKey) {
-                        /**
-                         * Если установлен флаг "regular" то необходимо домножить ценну на длительность тура
-                         */
-                        $coefficient = ($itemPrice["regular"] ?? false) ? $tour["duration"] : 1;
-
-                        $comparablePrice = (float) $itemPrice[$priceKey] * (float) $coefficient;
-
-                        if (!isset($minimumPrice)) $minimumPrice = $comparablePrice;
-
-                        $minimumPrice = ($minimumPrice > $comparablePrice) ? $comparablePrice : $minimumPrice;
-                    }
-                }
-
-                $result = $minimumPrice;
-            } catch (\Exception $e) {
-
-                $result = null;
+                foreach ($apartments["apartments"] ?? [] as $apartment)
+                    if (in_array($apartment["id"], $allowApartments))
+                        $apartmentIds[] = $apartment["id"];
             }
+            /**
+             * Формирование масива цен для сравнения
+             */
+            foreach ($apartmentIds as $apartmentId) {
+
+                try {
+
+                    $price = $frontApi->apartmentPrice(["apartmentid" => $apartmentId, "tourid" => $this->tourid])["apartmentprices"][0] ?? [];
+
+                    $prices[$apartmentId] = $price;
+                    /**
+                     * Если цена не была найдена идем дальше
+                     */
+                } catch (ApiException $exception) {
+
+                    continue;
+                }
+            }
+            /**
+             * Поиск минимальной цены (учитывается только минимальная цена основного места)
+             */
+            foreach ($prices as $itemPrice) {
+
+                $priceKeys = preg_grep("/price_m/", array_keys($itemPrice));
+
+                foreach ($priceKeys ?? [] as $priceKey) {
+                    /**
+                     * Если установлен флаг "regular" то необходимо домножить ценну на длительность тура
+                     */
+                    $coefficient = ($itemPrice["regular"] ?? false) ? $tour["duration"] : 1;
+
+                    $comparablePrice = (float) $itemPrice[$priceKey] * (float) $coefficient;
+
+                    if (!isset($minimumPrice)) $minimumPrice = $comparablePrice;
+
+                    $minimumPrice = ($minimumPrice > $comparablePrice) ? $comparablePrice : $minimumPrice;
+                }
+            }
+
+            $result = $minimumPrice ?? null;
 
             return $result;
         };

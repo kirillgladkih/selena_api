@@ -49,20 +49,12 @@ class GetServices implements TaskContract
     {
         return function (ClientInterface $client) {
 
-            try {
 
-                $frontApi = new FrontApi($client);
+            $frontApi = new FrontApi($client);
 
-                $services = $frontApi->serviceList(["objectid" => $this->objectid])["services"] ?? null;
-                
-                return $services;
+            $result = $frontApi->serviceList(["objectid" => $this->objectid])["services"] ?? null;
 
-            } catch (\Exception $exception) {
-
-                $result = null;
-            }
-
-            return $result;
+            return $result ?? null;
         };
     }
 }

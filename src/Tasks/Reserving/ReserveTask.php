@@ -67,26 +67,22 @@ class ReserveTask implements TaskContract
     {
         return function (ClientInterface $client) {
 
-            try {
 
-                $bookingApi = new BookingApi($client);
+            $bookingApi = new BookingApi($client);
 
-                foreach ($this->tourists as $tourist) $tourists[] = $tourist->toArray();
+            foreach ($this->tourists as $tourist) $tourists[] = $tourist->toArray();
 
-                $data = [
-                    "commit" => $this->commit,
-                    "order" => $this->order->toArray(),
-                    "tourists" => $tourists ?? []
-                ];
+            $data = [
+                "commit" => $this->commit,
+                "order" => $this->order->toArray(),
+                "tourists" => $tourists ?? []
+            ];
 
-                $result = $bookingApi->reserve($data);
+            $result = $bookingApi->reserve($data);
 
-            } catch (ApiException $exception) {
 
-                $result = null;
-            }
+            return $result ?? null;
 
-            return $result;
         };
     }
 }

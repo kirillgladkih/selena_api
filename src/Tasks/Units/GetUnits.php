@@ -47,18 +47,10 @@ class GetUnits implements TaskContract
     {
         return function (ClientInterface $client) {
 
-            try {
 
-                $frontApi = new FrontApi($client);
+            $frontApi = new FrontApi($client);
 
-                $result = $frontApi->unitList(["objectid" => $this->objectid]) ?? null;
-
-            } catch (ApiException $exception) {
-
-                dd($exception->getMessage());
-
-                $result = null;
-            }
+            $result = $frontApi->unitList(["objectid" => $this->objectid])["units"] ?? [];
 
             return $result;
         };

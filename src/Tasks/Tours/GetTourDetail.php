@@ -59,30 +59,21 @@ class GetTourDetail implements TaskContract
     {
         return function (ClientInterface $client) {
 
-            try {
+            $frontApi = new FrontApi($client);
 
-                $frontApi = new FrontApi($client);
+            $tour = $frontApi->tourList(["objectid" => $this->objectid, "tourid" => $this->tourid])["tours"][0] ?? [];
 
-                $tour = $frontApi->tourList(["objectid" => $this->objectid, "tourid" => $this->tourid])["tours"][0] ?? [];
+            $offersForTourTask = new GetOffersForTour($this->objectid, $this->tourid);
 
-                $offersForTourTask = new GetOffersForTour($this->objectid, $this->tourid);
+            $discountsForObjectTask = new GetDiscountsForObject($this->objectid);
 
-                $minPriceForTourTask = new GetMinPriceForTour($this->objectid, $this->tourid);
+            $result = [
+                "tour" => $tour,
+                "amount_places" => ($offersForTourTask->get())($client),
+                "discounts" => ($discountsForObjectTask->get())($client)
+            ];
 
-                $discountsForObjectTask = new GetDiscountsForObject($this->objectid);
-
-                $result = [
-                    "tour" => $tour,
-                    "amount_places" => ($offersForTourTask->get())($client),
-                    "min_price" => ($minPriceForTourTask->get())($client),
-                    "discounts" => ($discountsForObjectTask->get())($client)
-                ];
-            } catch (ApiException $exception) {
-
-                $result = null;
-            }
-
-            return $result;
+            return $result ?? null;
         };
     }
 }

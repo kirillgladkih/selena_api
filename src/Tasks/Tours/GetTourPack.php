@@ -51,16 +51,10 @@ class GetTourPack implements TaskContract
     {
         return function (ClientInterface $client) {
 
-            try {
 
-                $frontApi = new FrontApi($client);
+            $frontApi = new FrontApi($client);
 
-                $result = $frontApi->tourPackList(["objectid" => $this->objectid])["tourpacks"] ?? null;
-            
-            } catch (ApiException $exception) {
-
-                $result = null;
-            }
+            $result = $frontApi->tourPackList(["objectid" => $this->objectid])["tourpacks"] ?? null;
 
             return $result;
         };

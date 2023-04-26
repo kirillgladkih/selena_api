@@ -52,7 +52,7 @@ class GetPriceForApartment implements TaskContract
     {
         $class = str_replace('\\', '_', self::class);
 
-        return $class . "_{$this->apartmentid}_{$this->tourid}_{$this->pricePrefix}"; 
+        return $class . "_{$this->apartmentid}_{$this->tourid}_{$this->pricePrefix}";
     }
     /**
      * Get callable
@@ -62,24 +62,16 @@ class GetPriceForApartment implements TaskContract
     public function get()
     {
         return function (ClientInterface $client) {
-            
-            try {
-             
-                $frontApi = new FrontApi($client);
 
-                $prices = $frontApi->apartmentPrice(["apartmentid" => $this->apartmentid, "tourid" => $this->tourid]);
-                
-                $result = $prices["apartmentprices"][0][$this->pricePrefix] ?? null;
+            $frontApi = new FrontApi($client);
 
-                if(!is_null($result)) $result = floatval($result);
+            $prices = $frontApi->apartmentPrice(["apartmentid" => $this->apartmentid, "tourid" => $this->tourid]);
 
-            } catch (\Exception $e) {
+            $result = $prices["apartmentprices"][0][$this->pricePrefix] ?? null;
 
-                $result = null;
+            if (!is_null($result)) $result = floatval($result);
 
-            }
-
-            return $result;
+            return $result ?? null;
         };
     }
 }

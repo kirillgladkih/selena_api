@@ -57,36 +57,31 @@ class GetApartmentPrices implements TaskContract
     {
         return function (ClientInterface $client) {
 
-            try {
 
-                $frontApi = new FrontApi($client);
+            $frontApi = new FrontApi($client);
 
-                foreach ($this->apartments ?? [] as $key => $item) {
+            foreach ($this->apartments ?? [] as $key => $item) {
 
-                    $pricesQuery = ["apartmentid" => $item["id"], "tourid" => $this->params->tourid];
+                $pricesQuery = ["apartmentid" => $item["id"], "tourid" => $this->params->tourid];
 
-                    try {
-                        /**
-                         * Получение цен
-                         */
-                        $prices = $frontApi->apartmentPrice($pricesQuery)["apartmentprices"] ?? [];
+                try {
+                    /**
+                     * Получение цен
+                     */
+                    $prices = $frontApi->apartmentPrice($pricesQuery)["apartmentprices"] ?? [];
 
-                        ApartmentHelper::prepareRegularPrices($prices);
+                    ApartmentHelper::prepareRegularPrices($prices);
 
-                        $prices = $prices[0] ?? [];
+                    $prices = $prices[0] ?? [];
 
-                        if (!empty($prices)) $result[] = ["apartmentid" => $item["id"], "prices" => $prices];
-                        /**
-                         * Exception
-                         */
-                    } catch (ApiException $exception) {
+                    if (!empty($prices)) $result[] = ["apartmentid" => $item["id"], "prices" => $prices];
+                    /**
+                     * Exception
+                     */
+                } catch (ApiException $exception) {
 
-                        continue;
-                    }
+                    continue;
                 }
-            } catch (\Exception $exception) {
-
-                $result = null;
             }
 
             return $result ?? null;

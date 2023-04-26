@@ -60,51 +60,46 @@ class GetApartments implements TaskContract
     {
         return function (ClientInterface $client) {
 
-            try {
 
-                $frontApi = new FrontApi($client);
+            $frontApi = new FrontApi($client);
 
-                $apartments = [];
+            $apartments = [];
 
-                $apartmentQuery = ["objectid" => $this->objectid];
-                /**
-                 * Получение апартаметов по палубам
-                 */
-                if (!empty($this->unitids)) {
+            $apartmentQuery = ["objectid" => $this->objectid];
+            /**
+             * Получение апартаметов по палубам
+             */
+            if (!empty($this->unitids)) {
 
-                    foreach ($this->unitids as $id) {
+                foreach ($this->unitids as $id) {
 
-                        $apartmentQuery["unitid"] = $id;
+                    $apartmentQuery["unitid"] = $id;
 
-                        $aps = $frontApi->apartmentList($apartmentQuery)["apartments"] ?? [];
+                    $aps = $frontApi->apartmentList($apartmentQuery)["apartments"] ?? [];
 
-                        $apartments = array_merge($apartments, $aps);
-                    }
-                    
-                } else {
-
-                    $apartments = $frontApi->apartmentList($apartmentQuery)["apartments"] ?? [];
+                    $apartments = array_merge($apartments, $aps);
                 }
+            } else {
 
-                foreach ($apartments as $key => $item) {
-                    /**
-                     * Вычисление разрешенных возрастных категорий
-                     */
-                    $item["age_allows"] = [
-                        "main_ages"  => ApartmentHelper::getAllowAges($item["main_ages"], $item["own_ages"]),
-                        "child_ages" => ApartmentHelper::getAllowAges($item["child_ages"], $item["own_ages"]),
-                        "add_ages"   => ApartmentHelper::getAllowAges($item["add_ages"], $item["own_ages"])
-                    ];
-
-                    $result[] = $item;
-                }
-            
-            } catch (\Exception $exception) {
-
-                $result = null;
+                $apartments = $frontApi->apartmentList($apartmentQuery)["apartments"] ?? [];
             }
 
-            return $result;
+            foreach ($apartments as $key => $item) {
+                /**
+                 * Вычисление разрешенных возрастных категорий
+                 */
+                $item["age_allows"] = [
+                    "main_ages"  => ApartmentHelper::getAllowAges($item["main_ages"], $item["own_ages"]),
+                    "child_ages" => ApartmentHelper::getAllowAges($item["child_ages"], $item["own_ages"]),
+                    "add_ages"   => ApartmentHelper::getAllowAges($item["add_ages"], $item["own_ages"])
+                ];
+
+                $result[] = $item;
+            }
+
+
+            return $result ?? null;
+
         };
     }
 }

@@ -53,8 +53,6 @@ class ApartmentCalculatePrice implements TaskContract
     {
         return function (ClientInterface $client) {
 
-            try {
-
                 $childrenCount = count($this->params->children ?? []);
 
                 foreach ($this->params->apartments as $apartment) {
@@ -87,14 +85,9 @@ class ApartmentCalculatePrice implements TaskContract
                     }
                     
                     $result[] = $item;
-
                 }
-            } catch (\Exception $exception) {
 
-                $result = null;
-            }
-
-            return $result;
+            return $result ?? null;
         };
     }
 }
