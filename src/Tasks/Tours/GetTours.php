@@ -1,17 +1,20 @@
 <?php
 
-namespace Selena\Tasks\Apartments;
+namespace Selena\Tasks\Tours;
 
+use DateTime;
 use Psr\Http\Client\ClientInterface;
 use Selena\Exceptions\ApiException;
-use Selena\Helpers\ApartmentHelper;
 use Selena\Resources\Front\FrontApi;
+use Selena\Tasks\Subtasks\GetDiscountsForObject;
+use Selena\Tasks\Subtasks\GetMinPriceForTour;
+use Selena\Tasks\Subtasks\GetOffersForTour;
 use Selena\Tasks\TaskContract;
 
 /**
- * Апартаметы детально
+ * Получить список туров для теплохода
  */
-class GetApartmentDetail implements TaskContract
+class GetTours implements TaskContract
 {
     /**
      * ID объекта размещения
@@ -20,31 +23,31 @@ class GetApartmentDetail implements TaskContract
      */
     protected int $objectid;
     /**
-     * ID тура
+     * From
      *
-     * @var integer
+     * @var string|null
      */
-    protected int $tourid;
+    protected ?string $from;
     /**
-     * ID апартаментов
+     * To
      *
-     * @var integer
+     * @var string|null
      */
-    protected int $apartmentid;
+    protected ?string $to;
     /**
      * Init
      *
      * @param integer $objectid
-     * @param integer $tourid
-     * @param integer $apartmentid
+     * @param DateTime|null $from
+     * @param DateTime|null $to
      */
-    public function __construct(int $objectid, int $tourid, int $apartmentid)
+    public function __construct(int $objectid, ?DateTime $from, ?DateTime $to)
     {
         $this->objectid = $objectid;
 
-        $this->tourid = $tourid;
+        $this->from = $from ? $from->format("Y-m-d") : "";
 
-        $this->apartmentid = $apartmentid;
+        $this->to = $to ? $to->format("Y-m-d") : "";
     }
     /**
      * Get tag name for cache
@@ -55,7 +58,7 @@ class GetApartmentDetail implements TaskContract
     {
         $class = str_replace('\\', '_', self::class);
 
-        return $class . "_{$this->objectid}_{$this->tourid}_{$this->apartmentid}";
+        return $class . "_{$this->objectid}_{$this->from}_{$this->to}";
     }
     /**
      * Get callable
@@ -66,44 +69,50 @@ class GetApartmentDetail implements TaskContract
     {
         return function (ClientInterface $client) {
 
-
             $frontApi = new FrontApi($client);
 
-            $result = [];
+            $query = ["objectid" => $this->objectid];
 
-            $apartmentQuery = ["objectid" => $this->objectid, "apartmentid" => $this->apartmentid];
+            if (!empty($this->from)) $query["from"] = $this->from;
 
-            $apartment = $frontApi->apartmentList($apartmentQuery)["apartments"][0] ?? [];
+            if (!empty($this->to)) $query["to"] = $this->to;
 
-            if (!empty($apartment)) {
+            $tours = $frontApi->tourList($query)["tours"] ?? [];
 
-                $apartment["age_allows"] = [
-                    "main_ages"  => ApartmentHelper::getAllowAges($apartment["main_ages"], $apartment["own_ages"]),
-                    "child_ages" => ApartmentHelper::getAllowAges($apartment["child_ages"], $apartment["own_ages"]),
-                    "add_ages"   => ApartmentHelper::getAllowAges($apartment["add_ages"], $apartment["own_ages"])
-                ];
+            $offers = $frontApi->offers(["objectid" => $this->objectid, "from" => $this->from, "to" => $this->to])["offers"] ?? [];
 
-                $pricesQuery = ["apartmentid" => $apartment["id"], "tourid" => $this->tourid];
+            $tourIds = [];
 
-                $prices = $frontApi->apartmentPrice($pricesQuery)["apartmentprices"] ?? [];
+            foreach ($tours as $tour) {
 
-                ApartmentHelper::prepareRegularPrices($prices);
+                $tourIds[] = $tour["id"];
 
-                $apartment["prices"] = $prices[0] ?? [];
+                $item = ["tour" => $tour];
+                
+                $result["tours"][$tour["id"]] = $item;
+            }
 
-                $offersQuery = ["apartmentid" => $apartment["id"], "tourid" => $this->tourid, "objectid" => $this->objectid];
+            foreach($offers as $offer){
 
-                $offer = $frontApi->offers($offersQuery)["offers"][0] ?? [];
+                if(in_array($offer["tourid"], $tourIds)){
 
-                $apartment["amount_places"] = $offer["amount"] ?? null;
+                    $rooms = $offer["rooms"];
 
-                $apartment["rooms"] = $offer["rooms"] ?? [];
+                    $amount = $offer["amount"];
 
-                $result[] = $apartment;
+                    $rooms = array_filter($rooms, function($item){ return !empty($item); });
+
+                    $result["tours"][$offer["tourid"]]["amount_places"] = 
+                        ($result["tours"][$offer["tourid"]]["amount_places"] ?? 0) + $amount;
+
+                    $result["tours"][$offer["tourid"]]["rooms"] = 
+                        ($result["tours"][$offer["tourid"]]["rooms"] ?? 0) + count($rooms);
+
+                }
+
             }
 
             return $result ?? null;
-
         };
     }
 }
