@@ -1,20 +1,17 @@
 <?php
 
-namespace Selena\Tasks\Tours;
+namespace Selena\Tasks\Apartments;
 
-use DateTime;
 use Psr\Http\Client\ClientInterface;
 use Selena\Exceptions\ApiException;
+use Selena\Helpers\ApartmentHelper;
 use Selena\Resources\Front\FrontApi;
-use Selena\Tasks\Subtasks\GetDiscountsForObject;
-use Selena\Tasks\Subtasks\GetMinPriceForTour;
-use Selena\Tasks\Subtasks\GetOffersForTour;
 use Selena\Tasks\TaskContract;
 
 /**
- * Получить список туров для теплохода
+ * Апартаметы детально
  */
-class GetTours implements TaskContract
+class GetApartmentDetail implements TaskContract
 {
     /**
      * ID объекта размещения
@@ -23,31 +20,31 @@ class GetTours implements TaskContract
      */
     protected int $objectid;
     /**
-     * From
+     * ID тура
      *
-     * @var string|null
+     * @var integer
      */
-    protected ?string $from;
+    protected int $tourid;
     /**
-     * To
+     * ID апартаментов
      *
-     * @var string|null
+     * @var integer
      */
-    protected ?string $to;
+    protected int $apartmentid;
     /**
      * Init
      *
      * @param integer $objectid
-     * @param DateTime|null $from
-     * @param DateTime|null $to
+     * @param integer $tourid
+     * @param integer $apartmentid
      */
-    public function __construct(int $objectid, ?DateTime $from, ?DateTime $to)
+    public function __construct(int $objectid, int $tourid, int $apartmentid)
     {
         $this->objectid = $objectid;
 
-        $this->from = $from ? $from->format("Y-m-d") : "";
+        $this->tourid = $tourid;
 
-        $this->to = $to ? $to->format("Y-m-d") : "";
+        $this->apartmentid = $apartmentid;
     }
     /**
      * Get tag name for cache
@@ -58,7 +55,7 @@ class GetTours implements TaskContract
     {
         $class = str_replace('\\', '_', self::class);
 
-        return $class . "_{$this->objectid}_{$this->from}_{$this->to}";
+        return $class . "_{$this->objectid}_{$this->tourid}_{$this->apartmentid}";
     }
     /**
      * Get callable
@@ -69,24 +66,44 @@ class GetTours implements TaskContract
     {
         return function (ClientInterface $client) {
 
+
             $frontApi = new FrontApi($client);
 
-            $query = ["objectid" => $this->objectid];
+            $result = [];
 
-            if (!empty($this->from)) $query["from"] = $this->from;
+            $apartmentQuery = ["objectid" => $this->objectid, "apartmentid" => $this->apartmentid];
 
-            if (!empty($this->to)) $query["to"] = $this->to;
+            $apartment = $frontApi->apartmentList($apartmentQuery)["apartments"][0] ?? [];
 
-            $tours = $frontApi->tourList($query)["tours"] ?? [];
+            if (!empty($apartment)) {
 
-            foreach ($tours as $tour) {
+                $apartment["age_allows"] = [
+                    "main_ages"  => ApartmentHelper::getAllowAges($apartment["main_ages"], $apartment["own_ages"]),
+                    "child_ages" => ApartmentHelper::getAllowAges($apartment["child_ages"], $apartment["own_ages"]),
+                    "add_ages"   => ApartmentHelper::getAllowAges($apartment["add_ages"], $apartment["own_ages"])
+                ];
 
-                $item = ["tour" => $tour];
+                $pricesQuery = ["apartmentid" => $apartment["id"], "tourid" => $this->tourid];
 
-                $result["tours"][] = $item;
+                $prices = $frontApi->apartmentPrice($pricesQuery)["apartmentprices"] ?? [];
+
+                ApartmentHelper::prepareRegularPrices($prices);
+
+                $apartment["prices"] = $prices[0] ?? [];
+
+                $offersQuery = ["apartmentid" => $apartment["id"], "tourid" => $this->tourid, "objectid" => $this->objectid];
+
+                $offer = $frontApi->offers($offersQuery)["offers"][0] ?? [];
+
+                $apartment["amount_places"] = $offer["amount"] ?? null;
+
+                $apartment["rooms"] = $offer["rooms"] ?? [];
+
+                $result[] = $apartment;
             }
 
             return $result ?? null;
+
         };
     }
 }
