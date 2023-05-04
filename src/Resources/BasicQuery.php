@@ -55,6 +55,31 @@ abstract class BasicQuery
         $this->resolveParams($data);
     }
     /**
+     * To string magic method
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        $string  = "url: " . $this->url . " method: " . $this->method .  PHP_EOL;
+
+        if (!empty($this->params)) {
+
+            $string .= "params: " . PHP_EOL;
+
+            foreach ($this->params as $key => $value){
+
+                if(!is_string($value)) $value = json_encode($value ?? [], JSON_FORCE_OBJECT|JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE);
+
+                $string .= " - $key: $value" . PHP_EOL;
+
+            } 
+
+        }
+
+        return $string;
+    }
+    /**
      * Resolve params
      *
      * @param array $data

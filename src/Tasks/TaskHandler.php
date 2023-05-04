@@ -3,6 +3,7 @@
 namespace Selena\Tasks;
 
 use Psr\Http\Client\ClientInterface;
+use Selena\Exceptions\ApiException;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Contracts\Cache\ItemInterface;
 
@@ -45,9 +46,10 @@ class TaskHandler
      * Resolve task
      *
      * @param TaskContract $task
+     * @param array ("callback" => callable, "args" => array)
      * @return mixed
      */
-    public function handleWithoutCache(TaskContract $task)
+    public function handleWithoutCache(TaskContract $task, array $exceptionHandler = [])
     {
         try {
 
@@ -57,13 +59,27 @@ class TaskHandler
 
         } catch (\Exception $exception) {
             
-            $payload = "Task: " . get_class($task) . PHP_EOL;
+            if(!empty($exceptionHandler)){
 
+                $callback = $exceptionHandler["callback"] ?? null;
+
+                $args = $exceptionHandler["args"] ?? [];
+                
+                $args["exception"] = $exception;
+
+                if($callback) $callback($args);
+
+            }
+
+            $payload = "Time: " . date("Y-m-d H:i:s") . PHP_EOL;
+
+            $payload .= "Task: " . get_class($task) . PHP_EOL;
+            
+            $payload .= "Cache Tag: " . $task->tag() . PHP_EOL;
+            
             $payload .= "Error: " . $exception->getMessage() . PHP_EOL;
 
-            $payload .= "Cache Tag: " . $task->tag() . PHP_EOL;
-
-            $payload .= "Time: " . date("Y-m-d H:i:s");
+            if($exception instanceof ApiException) $payload .= $exception->getQuery();
 
             $this->log($payload, "errors");
         
