@@ -55,6 +55,15 @@ abstract class BasicQuery
         $this->resolveParams($data);
     }
     /**
+     * Get params
+     *
+     * @return array
+     */
+    public function getParams()
+    {
+        return $this->params;
+    }
+    /**
      * To string magic method
      *
      * @return string
