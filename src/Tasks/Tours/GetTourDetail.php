@@ -63,13 +63,10 @@ class GetTourDetail implements TaskContract
 
             $tour = $frontApi->tourList(["objectid" => $this->objectid, "tourid" => $this->tourid])["tours"][0] ?? [];
 
-            $offersForTourTask = new GetOffersForTour($this->objectid, $this->tourid);
-
             $discountsForObjectTask = new GetDiscountsForObject($this->objectid);
 
             $result = [
                 "tour" => $tour,
-                "amount_places" => ($offersForTourTask->get())($client),
                 "discounts" => ($discountsForObjectTask->get())($client)
             ];
 
