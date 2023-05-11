@@ -56,16 +56,20 @@ class GetApartmentOffers implements TaskContract
     {
         return function (ClientInterface $client) {
 
-
             $frontApi = new FrontApi($client);
+
+            $offersQuery = ["tourid" => $this->params->tourid, "objectid" => $this->params->objectid];
+
+            $offers = $frontApi->offers($offersQuery)["offers"] ?? [];
 
             foreach ($this->apartments ?? [] as $key => $item) {
 
                 try {
 
-                    $offersQuery = ["apartmentid" => $item["id"], "tourid" => $this->params->tourid, "objectid" => $this->params->objectid];
+                    $offer = null;
 
-                    $offer = $frontApi->offers($offersQuery)["offers"][0] ?? [];
+                    foreach($offers as $offerItem)
+                        if($offerItem["apartmentid"] == $item["id"]) $offer = $offerItem;
 
                     $amount = $offer["amount"] ?? null;
 
