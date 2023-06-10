@@ -41,6 +41,6 @@ class Promise
      */
     public function catch(?\Closure $closure)
     {
-        return $closure($this->result);
+        return $closure($this->result instanceof \Throwable ? $this->result : null);
     }
 }

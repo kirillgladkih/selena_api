@@ -2,6 +2,7 @@
 
 namespace Selena\Repository;
 
+use Psr\Cache\InvalidArgumentException;
 use Selena\Resources\Front\FrontApi;
 use Selena\SelenaService;
 use Symfony\Component\Cache\Adapter\AbstractAdapter;
@@ -34,7 +35,7 @@ class FrontApiCacheRepository extends AbstractCacheRepository
     {
         $tag = "unitList_$object_id";
 
-        $callable =  $this->frontApi->unitList(["objectid" => $object_id])["units"] ?? [];
+        $callable = $this->frontApi->unitList(["objectid" => $object_id])["units"] ?? [];
 
         return $this->process($tag, $callable, $this->cacheLifetimes["unitList"]);
     }
@@ -212,28 +213,12 @@ class FrontApiCacheRepository extends AbstractCacheRepository
      */
     protected function process($tag, $callable, ?int $cacheTime = null)
     {
-        try {
+        return $this->cachePool->get($tag, function (ItemInterface $item) use ($callable, $cacheTime) {
 
-            $data = $this->cachePool->get($tag, function (ItemInterface $item) use ($callable, $cacheTime) {
+            $item->expiresAfter($cacheTime ?? $this->defaultLifetimes);
 
-                $item->expiresAfter($cacheTime ?? $this->defaultLifetimes);
+            return $callable();
 
-                return $callable();
-
-            });
-
-            if (empty($data)) {
-
-                $this->cachePool->delete($tag);
-
-            }
-
-        } catch (\Throwable $exception) {
-
-            $data = [];
-
-        }
-
-        return $data;
+        });
     }
 }
