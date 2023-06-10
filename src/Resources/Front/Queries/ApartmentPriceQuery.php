@@ -2,6 +2,7 @@
 
 namespace Selena\Resources\Front\Queries;
 
+use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\ResponseInterface;
 use Selena\Resources\BasicQuery;
@@ -56,22 +57,22 @@ class ApartmentPriceQuery extends BasicQuery
 
     /**
      * Resolve
-     *
-     * @param ClientInterface $client
-     * @return ResponseInterface
      */
-    public function resolve(ClientInterface $client): ResponseInterface
+    protected function resolve(): void
     {
         if (!isset($this->params["apartmentid"])) throw new \Exception("apartmentid param is null");
 
         $this->url = $this->url . "/" . $this->params["apartmentid"];
 
         $this->setParamsInUrlQuery(["objectid","tourid","tourpackid","duration","priceid","begindate"]);
-
-        $request = $this->resolveRequest();
-
-        $response = $client->sendRequest($request);
-
-        return $response;
     }
+
+    /**
+     * @throws ClientExceptionInterface
+     */
+    public function send(ClientInterface $client): ResponseInterface
+    {
+        return $client->sendRequest($this->request);
+    }
+
 }

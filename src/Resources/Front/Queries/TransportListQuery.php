@@ -2,6 +2,7 @@
 
 namespace Selena\Resources\Front\Queries;
 
+use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\ResponseInterface;
 use Selena\Resources\BasicQuery;
@@ -35,20 +36,20 @@ class TransportListQuery extends BasicQuery
      * @var array
      */
     protected array $attributes = ["id"];
+
     /**
-     * Resolve
-     *
-     * @param ClientInterface $client
-     * @return ResponseInterface
+     * @return void
      */
-    public function resolve(ClientInterface $client): ResponseInterface
+    protected function resolve(): void
     {
         $this->setParamsInUrlQuery(["id"]);
+    }
 
-        $request = $this->resolveRequest();
-
-        $response = $client->sendRequest($request);
-
-        return $response;
+    /**
+     * @throws ClientExceptionInterface
+     */
+    public function send(ClientInterface $client): ResponseInterface
+    {
+        return $client->sendRequest($this->request);
     }
 }

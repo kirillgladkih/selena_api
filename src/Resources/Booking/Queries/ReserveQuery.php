@@ -2,15 +2,16 @@
 
 namespace Selena\Resources\Booking\Queries;
 
+use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\ResponseInterface;
 use Selena\Resources\BasicQuery;
 
 /**
  * Бронирование
- * 
+ *
  * URL: https://selena-online.ru/rest/v1/reserve
- * 
+ *
  * Documentation: https://selena-online.ru/rest/bookingapi/reserve
  */
 class ReserveQuery extends BasicQuery
@@ -29,10 +30,11 @@ class ReserveQuery extends BasicQuery
     protected string $method = "PUT";
     /**
      * Attributes
-     * 
+     *
      * @var array
      */
     protected array $attributes = ["commit", "order", "tourists"];
+
     /**
      * Init
      *
@@ -41,38 +43,30 @@ class ReserveQuery extends BasicQuery
     public function __construct(array $data = [])
     {
         parent::__construct($data);
-        
+
         $this->headers["content-type"] = "application/json";
     }
+
     /**
-     * Resolve
-     *
-     * @param ClientInterface $client
-     * @return ResponseInterface
-     */
-    public function resolve(ClientInterface $client): ResponseInterface
-    {
-        $this->resolveBody();
-
-        $request = $this->resolveRequest();
-
-        $response = $client->sendRequest($request);
-
-        return $response;
-    }   
-    /**
-     * Resolve body
-     *
      * @return void
+     * @throws \Exception
      */
-    private function resolveBody(): void
+    protected function resolve(): void
     {
         $data = [
-            "order" => $this->params["order"] ?? [], 
-            "commit" => $this->params["commit"] ?? false, 
+            "order" => $this->params["order"] ?? [],
+            "commit" => $this->params["commit"] ?? false,
             "tourists" => $this->params["tourists"] ?? []
         ];
 
         $this->body = json_encode($data);
+    }
+
+    /**
+     * @throws ClientExceptionInterface
+     */
+    public function send(ClientInterface $client): ResponseInterface
+    {
+        return $client->sendRequest($this->request);
     }
 }

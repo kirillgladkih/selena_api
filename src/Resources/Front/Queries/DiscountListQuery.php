@@ -2,6 +2,7 @@
 
 namespace Selena\Resources\Front\Queries;
 
+use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\ResponseInterface;
 use Selena\Resources\BasicQuery;
@@ -31,22 +32,19 @@ class DiscountListQuery extends BasicQuery
      * @var array
      */
     protected array $attributes = ["objectid"];
-    /**
-     * Resolve
-     *
-     * @param ClientInterface $client
-     * @return ResponseInterface
-     */
-    public function resolve(ClientInterface $client): ResponseInterface
+
+    protected function resolve(): void
     {
         if (!isset($this->params["objectid"])) throw new \Exception("objectid param is null");
 
         $this->url = $this->url . "/" . $this->params["objectid"];
+    }
 
-        $request = $this->resolveRequest();
-
-        $response = $client->sendRequest($request);
-
-        return $response;
+    /**
+     * @throws ClientExceptionInterface
+     */
+    public function send(ClientInterface $client): ResponseInterface
+    {
+        return $client->sendRequest($this->request);
     }
 }

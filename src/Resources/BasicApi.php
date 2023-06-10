@@ -5,6 +5,9 @@ namespace Selena\Resources;
 use GuzzleHttp\Client;
 use Psr\Http\Message\ResponseInterface;
 use Selena\Exceptions\ApiException;
+use Selena\Logger\LoggerInterface;
+use Selena\Reports\ApiRequestReport;
+use Selena\SelenaService;
 
 abstract class BasicApi
 {
@@ -48,7 +51,15 @@ abstract class BasicApi
 
                 $attempts = $attempts - 1;
 
-                $response = $query->resolve($client);
+                $response = $query->send($client);
+
+                $report = new ApiRequestReport($response, $query);
+                /**
+                 * @var LoggerInterface $logger
+                 */
+                $logger = SelenaService::instance()->get(LoggerInterface::class);
+
+                $logger->log("requests", $report);
 
                 if(!in_array($response->getStatusCode(), $this->repeatStatuses)){
 

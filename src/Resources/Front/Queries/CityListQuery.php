@@ -2,6 +2,7 @@
 
 namespace Selena\Resources\Front\Queries;
 
+use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\ResponseInterface;
 use Selena\Resources\BasicQuery;
@@ -37,24 +38,25 @@ class CityListQuery extends BasicQuery
      * @var array
      */
     protected array $attributes = ["cityid", "fias_guid", "name"];
+
     /**
-     * Resolve
-     *
-     * @param ClientInterface $client
-     * @return ResponseInterface
+     * @return void
+     * @throws \Exception
      */
-    public function resolve(ClientInterface $client): ResponseInterface
+    protected function resolve(): void
     {
         if (!isset($this->params["cityid"])) throw new \Exception("cityid param is null");
 
         $this->url = $this->url . "/" . $this->params["cityid"];
 
         $this->setParamsInUrlQuery(["name", "fias_guid"]);
+    }
 
-        $request = $this->resolveRequest();
-
-        $response = $client->sendRequest($request);
-
-        return $response;
+    /**
+     * @throws ClientExceptionInterface
+     */
+    public function send(ClientInterface $client): ResponseInterface
+    {
+        return $client->sendRequest($this->request);
     }
 }

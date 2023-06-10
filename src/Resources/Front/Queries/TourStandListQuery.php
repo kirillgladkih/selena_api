@@ -2,6 +2,7 @@
 
 namespace Selena\Resources\Front\Queries;
 
+use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\ResponseInterface;
 use Selena\Resources\BasicQuery;
@@ -35,24 +36,25 @@ class TourStandListQuery extends BasicQuery
      * @var array
      */
     protected array $attributes = ["tourid", "tourstandid"];
+
     /**
-     * Resolve
-     *
-     * @param ClientInterface $client
-     * @return ResponseInterface
+     * @return void
+     * @throws \Exception
      */
-    public function resolve(ClientInterface $client): ResponseInterface
+    protected function resolve(): void
     {
         if (!isset($this->params["tourid"])) throw new \Exception("tourid param is null");
 
         $this->url = $this->url . "/" . $this->params["tourid"];
 
         $this->setParamsInUrlQuery(["tourstandid"]);
+    }
 
-        $request = $this->resolveRequest();
-
-        $response = $client->sendRequest($request);
-
-        return $response;
+    /**
+     * @throws ClientExceptionInterface
+     */
+    public function send(ClientInterface $client): ResponseInterface
+    {
+        return $client->sendRequest($this->request);
     }
 }
