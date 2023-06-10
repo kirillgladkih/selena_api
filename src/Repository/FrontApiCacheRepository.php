@@ -2,7 +2,6 @@
 
 namespace Selena\Repository;
 
-use Psr\Cache\InvalidArgumentException;
 use Selena\Resources\Front\FrontApi;
 use Selena\SelenaService;
 use Symfony\Component\Cache\Adapter\AbstractAdapter;
@@ -19,20 +18,6 @@ class FrontApiCacheRepository extends AbstractCacheRepository
      * @var FrontApi
      */
     protected FrontApi $frontApi;
-
-    /**
-     * @var int[]
-     */
-    protected array $cacheLifetimes = [
-        "apartmentList" => 60 * 60 * 24,
-        "roomList" => 60 * 60 * 24,
-        "apartmentPrice" => 60 * 60 * 24,
-        "offers" => 60 * 60,
-        "tourList" => 60 * 60 * 24,
-        "tourStandList" => 60 * 60 * 24,
-        "serviceList" => 60 * 60 * 24,
-        "tourPackList" => 60 * 60 * 24,
-    ];
 
     public function __construct(AbstractAdapter $adapter)
     {

@@ -5,9 +5,9 @@ namespace Selena\Tasks;
 interface TaskContract
 {
     /**
-     * Get callable
+     * Handle task
      *
-     * @return callable
+     * @return mixed
      */
     public function get();
 }

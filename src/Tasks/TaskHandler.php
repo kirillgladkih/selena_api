@@ -2,44 +2,14 @@
 
 namespace Selena\Tasks;
 
-use Psr\Http\Client\ClientInterface;
 use Selena\Exceptions\ApiException;
-use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Selena\Logger\LoggerInterface;
+use Selena\Reports\DefaultReport;
+use Selena\SelenaService;
 use Symfony\Contracts\Cache\ItemInterface;
 
 class TaskHandler
 {
-    /**
-     * Client
-     *
-     * @var ClientInterface
-     */
-    protected ClientInterface $client;
-    /**
-     * Cache pool
-     *
-     * @var FilesystemAdapter
-     */
-    protected FilesystemAdapter $cachePool;
-    /**
-     * Log directory
-     *
-     * @var string
-     */
-    protected $logDirectory;
-    /**
-     * Init
-     *
-     */
-    public function __construct()
-    {
-        $this->cachePool = new FilesystemAdapter("task_cache", 0, __DIR__ . "/../../cache");
-
-        $this->logDirectory = __DIR__ . "/../../logs";
-
-        if (!is_dir($this->logDirectory)) mkdir($this->logDirectory);
-    }
-
     /**
      * @param string $class
      * @param ...$args
@@ -47,105 +17,50 @@ class TaskHandler
      */
     public function handle(string $class, ...$args)
     {
-        $class = new $class(...$args);
-
-        return $class->get();
-    }
-
-    /**
-     * Resolve task
-     *
-     * @param TaskContract $task
-     * @param array ("callback" => callable, "args" => array)
-     * @return mixed
-     */
-    public function handleWithoutCache(TaskContract $task, array $exceptionHandler = [])
-    {
         try {
 
-            $callable = $task->get();
-            
-            $result = $callable($this->client);
+            $process = $this->createProcess($class, ...$args);
 
-        } catch (\Exception $exception) {
-            
-            if(!empty($exceptionHandler)){
+            return $process();
 
-                $callback = $exceptionHandler["callback"] ?? null;
+        } catch (\Throwable $throwable) {
 
-                $args = $exceptionHandler["args"] ?? [];
-                
-                $args["exception"] = $exception;
+            $report = new DefaultReport($throwable);
 
-                if($callback) $callback($args);
+            /**
+             * @var LoggerInterface $logger
+             */
 
-            }
+            $logger = SelenaService::instance()->get(LoggerInterface::class);
 
-            $payload = "Time: " . date("Y-m-d H:i:s") . PHP_EOL;
+            $logger->error($report);
 
-            $payload .= "Task: " . get_class($task) . PHP_EOL;
-            
-            $payload .= "Cache Tag: " . $task->tag() . PHP_EOL;
-            
-            $payload .= "Error: " . $exception->getMessage() . PHP_EOL;
-
-            if($exception instanceof ApiException) $payload .= $exception->getQuery();
-
-            $this->log($payload, "errors");
-        
+            return null;
         }
-
-        return $result ?? null;
     }
+
     /**
-     * Handle task with cache
-     *
-     * @param TaskContract $task 
-     * @param int $cache_lifetime = 3600
-     * @return mixed
+     * @param \Closure $process
+     * @return Promise
      */
-    public function handleWithCache(TaskContract $task, int $cache_lifetime = 3600)
+    public function promise(string $class, ...$args): Promise
     {
-        $result = $this->cachePool->get($task->tag(), function (ItemInterface $item) use ($cache_lifetime, $task) {
-
-            $item->expiresAfter($cache_lifetime);
-
-            $data = $this->handleWithoutCache($task);
-
-            return !empty($data) ? $data : null;
-        });
-
-        if (empty($result)) $this->cachePool->delete($task->tag());
-
-        return $result;
+        return new Promise($this->createProcess($class, ...$args));
     }
+
     /**
-     * Log
-     *
-     * @param mixed $payload
-     * @return void
+     * @param string $class
+     * @param ...$args
+     * @return \Closure
      */
-    private function log($payload, string $logDirectory)
+    protected function createProcess(string $class, ...$args): \Closure
     {
-        $logDirectory = $this->logDirectory . "/" . $logDirectory;
+        return function () use ($class, $args) {
 
-        if(!is_dir($logDirectory)) mkdir($logDirectory);
+            $class = new $class(...$args);
 
-        $file = $logDirectory . "/" . $this->timestamp() . ".txt";
-        
-        file_put_contents($file, PHP_EOL, FILE_APPEND | LOCK_EX);
+            return $class->get();
 
-        file_put_contents($file, $payload, FILE_APPEND | LOCK_EX);
-
-        file_put_contents($file, PHP_EOL, FILE_APPEND | LOCK_EX);
-    }    
-    /**
-     * Timestamps
-     *
-     * @return string
-     */
-    private function timestamp()
-    {
-        return date("Y-m-d");
+        };
     }
 }
