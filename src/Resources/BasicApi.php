@@ -16,7 +16,12 @@ abstract class BasicApi
     /**
      * @var int
      */
-    protected int $repeatFailedAttempts = 2;
+    protected int $repeatFailedAttempts = 3;
+
+    /**
+     * @var array|int[]
+     */
+    protected array $repeatStatuses = [429];
 
     /**
      * @param Client[] $clients
@@ -35,83 +40,39 @@ abstract class BasicApi
      */
     protected function respond(BasicQuery $query, ?\Closure $responder = null)
     {
-        $status = false;
+        foreach ($this->clients as $client){
 
-        foreach ($this->clients as $client) {
+            $attempts = $this->repeatFailedAttempts;
 
-            $response = $this->pending($client, $query, function ($client, $query) use (&$status) {
+            while ($attempts > 0){
 
-                $attempts = $this->repeatFailedAttempts;
+                $attempts = $attempts - 1;
 
-                while ($attempts > 0 || !$status) {
+                $response = $query->resolve($client);
 
-                    $attempts = $attempts - 1;
+                if(!in_array($response->getStatusCode(), $this->repeatStatuses)){
 
-                    $response = $this->pending($client, $query);
-
-                    echo 'attempt - ' . $attempts . PHP_EOL;
-
-                    $status = $response->getStatusCode() >= 200 && $response->getStatusCode() <= 300;
+                    return !is_null($responder) ? $responder($response) : $this->defaultResponder($response, $query);
 
                 }
 
-            });
-
-            if($status){
-
-                break;
+                sleep(2);
 
             }
-
         }
 
-        $response = $response ?? null;
-
-        return !is_null($responder) ? $responder($response) : $this->defaultResponder($response, $query);
-    }
-
-    /**
-     * @param $client
-     * @param $query
-     * @param callable|null $exceptionHandler
-     * @return ResponseInterface|null
-     */
-    protected function pending($client, $query, ?callable $exceptionHandler = null): ?ResponseInterface
-    {
-        try {
-
-            $response = $query->resolve($client);
-
-        } catch (\Exception $exception) {
-
-            if (isset($exceptionHandler)) {
-
-                $exceptionHandler($client, $query);
-
-            }
-
-            $response = null;
-
-        }
-
-        return $response;
+        return null;
     }
 
     /**
      * Default responder
      *
-     * @param null|ResponseInterface $response
+     * @param ResponseInterface $response
      * @param BasicQuery $query
      * @return mixed
      */
-    protected function defaultResponder(?ResponseInterface $response, BasicQuery $query)
+    protected function defaultResponder(ResponseInterface $response, BasicQuery $query)
     {
-        if (!$response) {
-
-            return null;
-
-        }
-
         $data = json_decode($response->getBody()->getContents(), true);
 
         if (isset($data["error"])) {

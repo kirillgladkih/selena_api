@@ -39,14 +39,15 @@ class SelenaService extends Container
         ];
 
         $clients = [
-            new Client(["auth" => ["login", "password"]]),
+            new Client(["auth" => ["kama", "pass"]]),
+            new Client(["auth" => ["kama", "pass"]])
         ];
 
         $frontApi = new FrontApi($clients);
 
         $bookingApi = new BookingApi($clients);
 
-        $cachePool = new FilesystemAdapter("selena_cache", 0, __DIR__ . "/../../cache");
+        $cachePool = new FilesystemAdapter("selena_cache", 0, __DIR__ . "/../cache");
 
         $logger = new FileLogger(__DIR__ . "/../logs");
 

@@ -2,11 +2,10 @@
 
 namespace Selena\Tasks;
 
-use Selena\Exceptions\ApiException;
+use Closure;
 use Selena\Logger\LoggerInterface;
 use Selena\Reports\DefaultReport;
 use Selena\SelenaService;
-use Symfony\Contracts\Cache\ItemInterface;
 
 class TaskHandler
 {
@@ -39,8 +38,10 @@ class TaskHandler
         }
     }
 
+
     /**
-     * @param \Closure $process
+     * @param string $class
+     * @param ...$args
      * @return Promise
      */
     public function promise(string $class, ...$args): Promise
@@ -51,9 +52,9 @@ class TaskHandler
     /**
      * @param string $class
      * @param ...$args
-     * @return \Closure
+     * @return Closure
      */
-    protected function createProcess(string $class, ...$args): \Closure
+    protected function createProcess(string $class, ...$args): Closure
     {
         return function () use ($class, $args) {
 
