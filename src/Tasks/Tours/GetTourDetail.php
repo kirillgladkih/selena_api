@@ -2,75 +2,59 @@
 
 namespace Selena\Tasks\Tours;
 
-use Psr\Http\Client\ClientInterface;
-use Selena\Exceptions\ApiException;
-use Selena\Resources\Front\FrontApi;
+use Selena\Repository\FrontApiCacheRepository;
+use Selena\SelenaService;
 use Selena\Tasks\Subtasks\GetDiscountsForObject;
-use Selena\Tasks\Subtasks\GetMinPriceForTour;
-use Selena\Tasks\Subtasks\GetOffersForTour;
 use Selena\Tasks\TaskContract;
+use Selena\Tasks\TaskHandler;
 
-/**
- * Получить тур детально
- */
 class GetTourDetail implements TaskContract
 {
     /**
-     * ID объекта размещения
-     *
      * @var integer
      */
-    protected int $objectid;
+    protected int $object_id;
+
     /**
-     * ID тура
-     *
      * @var integer
      */
-    protected int $tourid;
-    /**
-     * Init
-     *
-     * @param integer $objectid
-     * @param integer $tourid
-     */
-    public function __construct(int $objectid, int $tourid)
-    {
-        $this->objectid = $objectid;
+    protected int $tour_id;
 
-        $this->tourid = $tourid;
+    /**
+     * @param int $object_id
+     * @param int $tour_id
+     */
+    public function __construct(int $object_id, int $tour_id)
+    {
+        $this->object_id = $object_id;
+
+        $this->tour_id = $tour_id;
     }
+
     /**
-     * Get tag name for cache
-     *
-     * @return string
+     * @return array|null
      */
-    public function tag()
+    public function get(): ?array
     {
-        $class = str_replace('\\', '_', self::class);
+        /**
+         * @var FrontApiCacheRepository $cacheFrontApiRepository
+         */
+        $cacheFrontApiRepository = SelenaService::instance()->get(FrontApiCacheRepository::class);
+        /**
+         * @var TaskHandler $handler
+         */
+        $handler = SelenaService::instance()->get(TaskHandler::class);
 
-        return $class . "_{$this->objectid}_{$this->tourid}";
-    }
-    /**
-     * Get callable
-     *
-     * @return callable
-     */
-    public function get()
-    {
-        return function (ClientInterface $client) {
+        $tour = $cacheFrontApiRepository->tourList($this->object_id, $this->tour_id)[0] ?? [];
 
-            $frontApi = new FrontApi($client);
-
-            $tour = $frontApi->tourList(["objectid" => $this->objectid, "tourid" => $this->tourid])["tours"][0] ?? [];
-
-            $discountsForObjectTask = new GetDiscountsForObject($this->objectid);
+        if(empty($tour)) {
 
             $result = [
                 "tour" => $tour,
-                "discounts" => ($discountsForObjectTask->get())($client)
+                "discounts" => $handler->handle(GetDiscountsForObject::class, $this->object_id)
             ];
 
-            return $result ?? null;
-        };
+        }
+        return $result ?? null;
     }
 }

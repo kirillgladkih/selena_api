@@ -3,7 +3,9 @@
 namespace Selena\Tasks\Services;
 
 use Psr\Http\Client\ClientInterface;
+use Selena\Repository\FrontApiCacheRepository;
 use Selena\Resources\Front\FrontApi;
+use Selena\SelenaService;
 use Selena\Tasks\TaskContract;
 
 /*
@@ -13,97 +15,78 @@ use Selena\Tasks\TaskContract;
 class GetExcursions implements TaskContract
 {
     /**
-     * Tour id
-     *
-     * @var int
-     */
-    protected int $tourid;
-    /**
-     * Object id
-     *
      * @var integer
      */
-    protected int $objectid;
-    /*
-     * Init
-     *
-     * @param integer $objectid
-     */
-    public function __construct(int $tourid, int $objectid)
-    {
-        $this->tourid = $tourid;
+    protected int $object_id;
 
-        $this->objectid = $objectid;
+    /**
+     * @var int
+     */
+    protected int $tour_id;
+
+    /**
+     * @param $object_id
+     * @param $tour_id
+     */
+    public function __construct($object_id, $tour_id)
+    {
+        $this->object_id = $object_id;
+
+        $this->tour_id = $tour_id;
     }
-    /*
-     * Get tag name for cache
-     *
-     * @return string
+
+    /**
+     * @return array|null
      */
-    public function tag()
+    public function get(): ?array
     {
-        $class = str_replace('\\', '_', self::class);
+        /**
+         * @var FrontApiCacheRepository $cacheFrontApiRepository
+         */
+        $cacheFrontApiRepository = SelenaService::instance()->get(FrontApiCacheRepository::class);
 
-        return $class . "_{$this->tourid}_{$this->objectid}";
-    }
-    /*
-     * Get callable
-     *
-     * @return callable
-     */
-    public function get()
-    {
-        return function (ClientInterface $client) {
+        $tour = $cacheFrontApiRepository->tourList($this->object_id, $this->tour_id);
 
+        $excursions = $cacheFrontApiRepository->tourStandList($this->tour_id);
 
-            $frontApi = new FrontApi($client);
+        $result["tour"] = $tour;
 
-            $result = [];
+        foreach ($excursions as $key => $excursion) {
 
-            $tour = $frontApi->tourList(["objectid" => $this->objectid, "tourid" => $this->tourid])["tours"][0] ?? [];
+            if (!isset($excursion["begindate"])) $excursions[$key]["begindate"] = $excursion["enddate"];
 
-            $excursions = $frontApi->tourStandList(["tourid" => $this->tourid])["tourstands"] ?? [];
+            if (!isset($excursion["enddate"])) $excursions[$key]["enddate"] = $excursion["begindate"];
+        }
 
-            $result["tour"] = $tour;
+        usort($excursions, fn($a, $b) => $a["begindate"] <=> $b["begindate"]);
+
+        $start = $excursions[0]["begindate"] ?? $excursions[0]["enddate"];
+
+        $day = 1;
+
+        if ($start) {
 
             foreach ($excursions as $key => $excursion) {
 
-                if (!isset($excursion["begindate"])) $excursions[$key]["begindate"] = $excursion["enddate"];
 
-                if (!isset($excursion["enddate"])) $excursions[$key]["enddate"] = $excursion["begindate"];
-            }
+                if (date("Y-m-d", strtotime($excursion["begindate"])) > date("Y-m-d", strtotime($start))) {
 
-            usort($excursions, fn ($a, $b) => $a["begindate"] <=> $b["begindate"]);
+                    $start = $excursion["begindate"] ?? $excursion["enddate"];
 
-            $start = $excursions[0]["begindate"] ?? $excursions[0]["enddate"];
-
-            $day = 1;
-
-            if ($start) {
-
-                foreach ($excursions as $key => $excursion) {
-
-
-                    if (date("Y-m-d", strtotime($excursion["begindate"])) > date("Y-m-d", strtotime($start))) {
-
-                        $start = $excursion["begindate"] ?? $excursion["enddate"];
-
-                        $day += 1;
-                    }
-
-
-                    $time_duration = strtotime($excursion["enddate"]) - strtotime($excursion["begindate"]);
-
-                    $excursion["time_duration"] = $time_duration / 3600;
-
-                    $excursion["day"] = $day;
-
-                    $result["excursions"][$day] = $excursion;
+                    $day += 1;
                 }
+
+
+                $time_duration = strtotime($excursion["enddate"]) - strtotime($excursion["begindate"]);
+
+                $excursion["time_duration"] = $time_duration / 3600;
+
+                $excursion["day"] = $day;
+
+                $result["excursions"][$day] = $excursion;
             }
+        }
 
-            return $result ?? null;
-
-        };
+        return $result ?? null;
     }
 }

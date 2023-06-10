@@ -2,104 +2,67 @@
 
 namespace Selena\Tasks\Apartments;
 
-use Psr\Http\Client\ClientInterface;
 use Selena\Helpers\ApartmentHelper;
-use Selena\Resources\Front\FrontApi;
+use Selena\Repository\FrontApiCacheRepository;
+use Selena\SelenaService;
 use Selena\Tasks\TaskContract;
-
-/*
- * Получить список апартаментов
- */
 
 class GetApartments implements TaskContract
 {
-    /*
-     * ID объекта размещения
-     *
-     * @var integer
-     */
-    protected int $objectid;
-    /*
-     * ID палубы
-     *
-     * @var integer[]
-     */
-    protected array $unitids;
-    /*
-     * Init
-     *
-     * @param integer $objectid
-     * @param integer $tourid
-     * @param integer[] $unitids
-     */
-    public function __construct(int $objectid, array $unitids = [])
-    {
-        $this->objectid = $objectid;
 
-        $this->unitids = $unitids;
+    /**
+     * @var int
+     */
+    protected int $object_id;
+
+    /**
+     * @var array
+     */
+    protected array $unit_ids;
+
+    /**
+     * @param int $object_id
+     * @param array $unit_ids
+     */
+    public function __construct(int $object_id, array $unit_ids = [])
+    {
+        $this->object_id = $object_id;
+
+        $this->unit_ids = $unit_ids;
     }
-    /*
-     * Get tag name for cache
-     *
-     * @return string
+
+    /**
+     * @return array|null
      */
-    public function tag()
+    public function get(): ?array
     {
-        $unitids = implode("_", $this->unitids);
+        /**
+         * @var FrontApiCacheRepository $cacheFrontApiRepository
+         */
+        $cacheFrontApiRepository = SelenaService::instance()->get(FrontApiCacheRepository::class);
 
-        $class = str_replace('\\', '_', self::class);
+        $apartments = $cacheFrontApiRepository->apartmentList($this->object_id);
 
-        return $class . "_{$this->objectid}_{$unitids}";
-    }
-    /*
-     * Get callable
-     *
-     * @return callable
-     */
-    public function get()
-    {
-        return function (ClientInterface $client) {
+        foreach ($this->unit_ids as $unit_id){
 
+            $apartments = array_filter($apartments, fn($item) => $item["unitid"] == $unit_id);
 
-            $frontApi = new FrontApi($client);
+        }
 
-            $apartments = [];
-
-            $apartmentQuery = ["objectid" => $this->objectid];
+        foreach ($apartments as $item) {
             /**
-             * Получение апартаметов по палубам
+             * Вычисление разрешенных возрастных категорий
              */
-            if (!empty($this->unitids)) {
+            $item["age_allows"] = [
+                "main_ages" => ApartmentHelper::getAllowAges($item["main_ages"], $item["own_ages"]),
+                "child_ages" => ApartmentHelper::getAllowAges($item["child_ages"], $item["own_ages"]),
+                "add_ages" => ApartmentHelper::getAllowAges($item["add_ages"], $item["own_ages"])
+            ];
 
-                foreach ($this->unitids as $id) {
+            $result[] = $item;
 
-                    $apartmentQuery["unitid"] = $id;
+        }
 
-                    $aps = $frontApi->apartmentList($apartmentQuery)["apartments"] ?? [];
-
-                    $apartments = array_merge($apartments, $aps);
-                }
-            } else {
-
-                $apartments = $frontApi->apartmentList($apartmentQuery)["apartments"] ?? [];
-            }
-
-            foreach ($apartments as $key => $item) {
-                /**
-                 * Вычисление разрешенных возрастных категорий
-                 */
-                $item["age_allows"] = [
-                    "main_ages"  => ApartmentHelper::getAllowAges($item["main_ages"], $item["own_ages"]),
-                    "child_ages" => ApartmentHelper::getAllowAges($item["child_ages"], $item["own_ages"]),
-                    "add_ages"   => ApartmentHelper::getAllowAges($item["add_ages"], $item["own_ages"])
-                ];
-
-                $result[] = $item;
-            }
-
-
-            return $result ?? null;
-
-        };
+        return $result ?? null;
     }
 }

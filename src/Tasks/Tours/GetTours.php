@@ -4,11 +4,9 @@ namespace Selena\Tasks\Tours;
 
 use DateTime;
 use Psr\Http\Client\ClientInterface;
-use Selena\Exceptions\ApiException;
+use Selena\Repository\FrontApiCacheRepository;
 use Selena\Resources\Front\FrontApi;
-use Selena\Tasks\Subtasks\GetDiscountsForObject;
-use Selena\Tasks\Subtasks\GetMinPriceForTour;
-use Selena\Tasks\Subtasks\GetOffersForTour;
+use Selena\SelenaService;
 use Selena\Tasks\TaskContract;
 
 /**
@@ -16,103 +14,97 @@ use Selena\Tasks\TaskContract;
  */
 class GetTours implements TaskContract
 {
+
     /**
-     * ID объекта размещения
-     *
-     * @var integer
+     * @var int
      */
-    protected int $objectid;
+    protected int $object_id;
+
     /**
-     * From
-     *
      * @var string|null
      */
     protected ?string $from;
+
     /**
-     * To
-     *
      * @var string|null
      */
     protected ?string $to;
+
     /**
      * Init
      *
-     * @param integer $objectid
+     * @param integer $object_id
      * @param DateTime|null $from
      * @param DateTime|null $to
      */
-    public function __construct(int $objectid, ?DateTime $from, ?DateTime $to)
+    public function __construct(int $object_id, ?DateTime $from = null, ?DateTime $to = null)
     {
-        $this->objectid = $objectid;
+        $this->object_id = $object_id;
 
-        $this->from = $from ? $from->format("Y-m-d") : "";
+        $this->from = $from ? $from->format("Y-m-d") : null;
 
-        $this->to = $to ? $to->format("Y-m-d") : "";
+        $this->to = $to ? $to->format("Y-m-d") : null;
     }
+
     /**
-     * Get tag name for cache
-     *
-     * @return string
+     * @return array|null
      */
-    public function tag()
+    public function get(): ?array
     {
-        $class = str_replace('\\', '_', self::class);
+        /**
+         * @var FrontApiCacheRepository $cacheFrontApiRepository
+         */
+        $cacheFrontApiRepository = SelenaService::instance()->get(FrontApiCacheRepository::class);
 
-        return $class . "_{$this->objectid}_{$this->from}_{$this->to}";
-    }
-    /**
-     * Get callable
-     *
-     * @return callable
-     */
-    public function get()
-    {
-        return function (ClientInterface $client) {
+        $tours = $cacheFrontApiRepository->tourList($this->object_id);
 
-            $frontApi = new FrontApi($client);
+        $offers = $cacheFrontApiRepository->offers($this->object_id);
 
-            $query = ["objectid" => $this->objectid];
+        $tourIds = [];
 
-            if (!empty($this->from)) $query["from"] = $this->from;
+        foreach ($tours as $tour) {
 
-            if (!empty($this->to)) $query["to"] = $this->to;
+            if(isset($this->from) && strtotime($this->from) >= strtotime($tour["begindate"])){
 
-            $tours = $frontApi->tourList($query)["tours"] ?? [];
-
-            $offers = $frontApi->offers(["objectid" => $this->objectid, "from" => $this->from, "to" => $this->to])["offers"] ?? [];
-
-            $tourIds = [];
-
-            foreach ($tours as $tour) {
-
-                $tourIds[] = $tour["id"];
-
-                $item = ["tour" => $tour];
-                
-                $result["tours"][$tour["id"]] = $item;
-            }
-
-            foreach($offers as $offer){
-
-                if(in_array($offer["tourid"], $tourIds)){
-
-                    $rooms = $offer["rooms"];
-
-                    $amount = $offer["amount"];
-
-                    $rooms = array_filter($rooms, function($item){ return !empty($item); });
-
-                    $result["tours"][$offer["tourid"]]["amount_places"] = 
-                        ($result["tours"][$offer["tourid"]]["amount_places"] ?? 0) + $amount;
-
-                    $result["tours"][$offer["tourid"]]["rooms"] = 
-                        ($result["tours"][$offer["tourid"]]["rooms"] ?? 0) + count($rooms);
-
-                }
+                continue;
 
             }
 
-            return $result ?? null;
-        };
+            if(isset($this->to) && strtotime($this->to) <= strtotime($tour["enddate"])){
+
+                continue;
+
+            }
+
+            $tourIds[] = $tour["id"];
+
+            $item = ["tour" => $tour];
+
+            $result["tours"][$tour["id"]] = $item;
+        }
+
+        foreach ($offers as $offer) {
+
+            if (in_array($offer["tourid"], $tourIds)) {
+
+                $rooms = $offer["rooms"];
+
+                $amount = $offer["amount"];
+
+                $rooms = array_filter($rooms, function ($item) {
+                    return !empty($item);
+                });
+
+                $result["tours"][$offer["tourid"]]["amount_places"] =
+                    ($result["tours"][$offer["tourid"]]["amount_places"] ?? 0) + $amount;
+
+                $result["tours"][$offer["tourid"]]["rooms"] =
+                    ($result["tours"][$offer["tourid"]]["rooms"] ?? 0) + count($rooms);
+
+            }
+
+        }
+
+        return $result ?? null;
     }
 }

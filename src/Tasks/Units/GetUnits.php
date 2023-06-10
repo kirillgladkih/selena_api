@@ -4,7 +4,9 @@ namespace Selena\Tasks\Units;
 
 use Psr\Http\Client\ClientInterface;
 use Selena\Exceptions\ApiException;
+use Selena\Repository\FrontApiCacheRepository;
 use Selena\Resources\Front\FrontApi;
+use Selena\SelenaService;
 use Selena\Tasks\TaskContract;
 
 /**
@@ -13,46 +15,28 @@ use Selena\Tasks\TaskContract;
 class GetUnits implements TaskContract
 {
     /**
-     * ID объекта размещения
-     *
      * @var integer
      */
-    protected int $objectid;
-    /**
-     * Init
-     *
-     * @param integer $objectid
-     */
-    public function __construct(int $objectid)
-    {
-        $this->objectid = $objectid;
-    }
-    /**
-     * Get tag name for cache
-     *
-     * @return string
-     */
-    public function tag()
-    {
-        $class = str_replace('\\', '_', self::class);
+    protected int $object_id;
 
-        return $class . "_{$this->objectid}";
-    }
     /**
-     * Get callable
-     *
-     * @return callable
+     * @param integer $object_id
+     */
+    public function __construct(int $object_id)
+    {
+        $this->object_id = $object_id;
+    }
+
+    /**
+     * @return mixed
      */
     public function get()
     {
-        return function (ClientInterface $client) {
+        /**
+         * @var FrontApiCacheRepository $cacheFrontApiRepository
+         */
+        $cacheFrontApiRepository = SelenaService::instance()->get(FrontApiCacheRepository::class);
 
-
-            $frontApi = new FrontApi($client);
-
-            $result = $frontApi->unitList(["objectid" => $this->objectid])["units"] ?? [];
-
-            return $result;
-        };
+        return $cacheFrontApiRepository->unitList($this->object_id);
     }
 }

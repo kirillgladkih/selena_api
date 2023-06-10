@@ -10,10 +10,4 @@ interface TaskContract
      * @return callable
      */
     public function get();
-    /**
-     * Get tag name for cache
-     *
-     * @return string
-     */
-    public function tag();
 }

@@ -30,18 +30,28 @@ class TaskHandler
     /**
      * Init
      *
-     * @param ClientInterface $client
      */
-    public function __construct(ClientInterface $client)
+    public function __construct()
     {
-        $this->client = $client;
-
         $this->cachePool = new FilesystemAdapter("task_cache", 0, __DIR__ . "/../../cache");
 
         $this->logDirectory = __DIR__ . "/../../logs";
 
         if (!is_dir($this->logDirectory)) mkdir($this->logDirectory);
     }
+
+    /**
+     * @param string $class
+     * @param ...$args
+     * @return mixed
+     */
+    public function handle(string $class, ...$args)
+    {
+        $class = new $class(...$args);
+
+        return $class->get();
+    }
+
     /**
      * Resolve task
      *
@@ -115,7 +125,7 @@ class TaskHandler
      * @param mixed $payload
      * @return void
      */
-    private function log(mixed $payload, string $logDirectory)
+    private function log($payload, string $logDirectory)
     {
         $logDirectory = $this->logDirectory . "/" . $logDirectory;
 

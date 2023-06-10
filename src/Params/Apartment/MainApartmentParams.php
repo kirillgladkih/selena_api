@@ -5,6 +5,11 @@ namespace Selena\Params\Apartment;
 use Selena\Helpers\ApartmentHelper;
 use Selena\Params\AbstractParams;
 
+/**
+ * @property int $objectid
+ * @property int $tourid
+ * @property array $unitids
+ */
 class MainApartmentParams extends AbstractParams
 {
     /**

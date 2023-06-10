@@ -3,7 +3,9 @@
 namespace Selena\Tasks\Rooms;
 
 use Psr\Http\Client\ClientInterface;
+use Selena\Repository\FrontApiCacheRepository;
 use Selena\Resources\Front\FrontApi;
+use Selena\SelenaService;
 use Selena\Tasks\TaskContract;
 
 /*
@@ -13,82 +15,72 @@ use Selena\Tasks\TaskContract;
 class GetRoomsWithOffers implements TaskContract
 {
     /**
-     * Apartment id
      *
      * @var integer
      */
-    protected int $apartmentid;
+    protected int $apartment_id;
+
     /**
-     * Tour id
      *
      * @var integer
      */
-    protected int $tourid;
+    protected int $tour_id;
+
     /**
-     * Object id
      *
      * @var integer
      */
-    protected int $objectid;
-    /*
-     * Init
-     *
+    protected int $object_id;
+
+
+    /**
+     * @param int $object_id
+     * @param int $tour_id
+     * @param int $apartment_id
      */
-    public function __construct(int $objectid, int $tourid, int $apartmentid)
+    public function __construct(int $object_id, int $tour_id, int $apartment_id)
     {
-        $this->tourid = $tourid;
+        $this->apartment_id = $apartment_id;
 
-        $this->apartmentid = $apartmentid;
+        $this->object_id = $object_id;
 
-        $this->objectid = $objectid;
+        $this->tour_id = $tour_id;
     }
-    /*
-     * Get tag name for cache
-     *
-     * @return string
+
+    /**
+     * @return array|null
      */
-    public function tag()
+    public function get(): ?array
     {
-        $class = str_replace('\\', '_', self::class);
+        /**
+         * @var FrontApiCacheRepository $cacheFrontApiRepository
+         */
+        $cacheFrontApiRepository = SelenaService::instance()->get(FrontApiCacheRepository::class);
 
-        return $class . "_" . http_build_query(["tourid" => $this->tourid, "apartmentid" => $this->apartmentid]);
-    }
-    /*
-     * Get callable
-     *
-     * @return callable
-     */
-    public function get()
-    {
-        return function (ClientInterface $client) {
+        $rooms = $cacheFrontApiRepository->roomList($this->apartment_id);
 
+        $offers = $cacheFrontApiRepository->offers($this->object_id, $this->tour_id);
 
-            $frontApi = new FrontApi($client);
+        $roomIds = array_map(fn($item) => $item["id"], $rooms);
 
-            $rooms = $frontApi->roomList(["apartmentid" => $this->apartmentid])["rooms"] ?? [];
+        $offers = array_filter($offers, fn($offer) => $offer["apartmentid"] == $this->apartment_id);
 
-            $offerRooms = $frontApi->offers([
-                "tourid" => $this->tourid, "apartmentid" => $this->apartmentid, "objectid" => $this->objectid
-            ])["offers"][0]["rooms"] ?? [];
+        foreach ($offers as $offer){
 
-            $offerRooms = array_filter($offerRooms, fn ($item) => !empty($item));
+            foreach ($offer["rooms"] ?? [] as $offerRoom){
 
-            foreach ($rooms as $room) {
+                if(in_array($offerRoom["roomid"], $roomIds)){
 
-                $offerRoom = array_values(
-                    array_filter(
-                        $offerRooms,
-                        fn ($item) => $item["roomid"] == $room["id"]
-                    )
-                );
+                    $offerRoom["id"] = $offerRoom["roomid"];
 
-                $room["amount"] = $offerRoom[0]["amount"] ?? 0;
+                    $result[] = $offerRoom;
 
-                $result[] = $room;
+                }
+
             }
 
+        }
 
-            return $result ?? null;
-        };
+        return $result ?? null;
     }
 }

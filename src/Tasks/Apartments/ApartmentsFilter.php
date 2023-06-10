@@ -2,93 +2,83 @@
 
 namespace Selena\Tasks\Apartments;
 
-use Psr\Http\Client\ClientInterface;
-use Selena\Exceptions\ApiException;
-use Selena\Filter\Apartment\MainApartmentFilter;
-use Selena\Helpers\ApartmentHelper;
-use Selena\Params\Apartment\MainApartmentFilterParams;
-use Selena\Resources\Front\FrontApi;
 use Selena\Tasks\TaskContract;
-
-/*
- * Отфильтровать апартаменты
- */
 
 class ApartmentsFilter implements TaskContract
 {
+
     /**
-     * Filter params
-     *
-     * @var MainApartmentFilterParams
+     * @var array
      */
-    protected MainApartmentFilterParams $params;
-    /*
-     * Init
-     *
+    protected array $apartments;
+
+    /**
+     * @var array
      */
-    public function __construct(MainApartmentFilterParams $params)
+    protected array $children;
+
+    /**
+     * @var int
+     */
+    protected int $main_places;
+
+    /**
+     * @param array $apartments
+     * @param int $main_places
+     * @param array $children
+     */
+    public function __construct(array $apartments, int $main_places = 0, array $children = [])
     {
-        $this->params = $params;
+        $this->apartments = $apartments;
+
+        $this->main_places = $main_places;
+
+        $this->children = $children;
     }
-    /*
-     * Get tag name for cache
-     *
-     * @return string
+
+    /**
+     * @return array
      */
-    public function tag()
+    public function get(): array
     {
-        $class = str_replace('\\', '_', self::class);
+        $childrenCount = count(($this->children ?? []));
 
-        return $class . "_" . http_build_query($this->params->toArray());
-    }
-    /*
-     * Get callable
-     *
-     * @return callable
-     */
-    public function get()
-    {
-        return function (ClientInterface $client) {
+        foreach ($this->apartments as $apartment) {
 
-            $childrenCount = count(($this->params->children ?? []));
+            if (($this->main_places <= (int)$apartment["places"]) && ($childrenCount <= (int)$apartment["childplaces"])) {
 
-            foreach ($this->params->apartments as $apartment) {
+                $childAgesCount = count($apartment["age_allows"]["child_ages"]);
 
-                if (($this->params->mainPlaces <= (int) $apartment["places"]) && ($childrenCount <= (int) $apartment["childplaces"])) {
+                if ($childrenCount >= 1) {
 
-                    $childAgesCount = count($apartment["age_allows"]["child_ages"]);
+                    if ($childAgesCount >= 1) {
 
-                    if ($childrenCount >= 1) {
+                        $from = (int)($apartment["age_allows"]["child_ages"][0]["from"] ?? 0);
 
-                        if ($childAgesCount >= 1) {
+                        $to = (int)($apartment["age_allows"]["child_ages"][$childAgesCount - 1]["to"] ?? 16);
 
-                            $from = (int) ($apartment["age_allows"]["child_ages"][0]["from"] ?? 0);
+                        $childrenAgeCondition = true;
 
-                            $to = (int) ($apartment["age_allows"]["child_ages"][$childAgesCount - 1]["to"] ?? 16);
+                        foreach ($this->children as $age) {
 
-                            $childrenAgeCondition = true;
+                            $childrenAgeCondition = $age <= $to && $age >= $from;
 
-                            foreach ($this->params->children as $age) {
+                            if ($childrenAgeCondition) {
 
-                                $childrenAgeCondition = $age <= $to && $age >= $from;
+                                $result[] = $apartment;
 
-                                if ($childrenAgeCondition) {
-
-                                    $result[] = $apartment;
-
-                                    break;
-                                }
+                                break;
                             }
                         }
-                    } else {
-
-                        $result[] = $apartment;
                     }
+
+                } else {
+
+                    $result[] = $apartment;
                 }
             }
+        }
 
-
-            return $result ?? null;
-        };
+        return $result ?? [];
     }
 }

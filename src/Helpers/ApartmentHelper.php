@@ -39,8 +39,11 @@ class ApartmentHelper
                  */
                 $coefficient = ($itemPrice["regular"] ?? false) ? $itemPrice["duration_to"] : 1;
 
-                if (isset($itemPrice[$priceKey]) && $itemPrice[$priceKey] != 0)
+                if (isset($itemPrice[$priceKey]) && $itemPrice[$priceKey] != 0){
+
                     $prices[$priceKey] = (float) $itemPrice[$priceKey] * (float) $coefficient;
+
+                }
             }
         }
     }
@@ -79,7 +82,7 @@ class ApartmentHelper
      * @param integer $apartmentId
      * @return float|null
      */
-    public static function searchPriceByApartmentId(array $prices, string $priceName, int $apartmentId)
+    public static function searchPriceByApartmentId(array $prices, string $priceName, int $apartmentId): ?float
     {
         foreach ($prices as $items)
             if ($items["apartmentid"] == $apartmentId)

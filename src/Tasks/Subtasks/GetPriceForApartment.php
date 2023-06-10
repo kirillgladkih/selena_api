@@ -3,7 +3,9 @@
 namespace Selena\Tasks\Subtasks;
 
 use Psr\Http\Client\ClientInterface;
+use Selena\Repository\FrontApiCacheRepository;
 use Selena\Resources\Front\FrontApi;
+use Selena\SelenaService;
 use Selena\Tasks\TaskContract;
 
 /**
@@ -11,67 +13,56 @@ use Selena\Tasks\TaskContract;
  */
 class GetPriceForApartment implements TaskContract
 {
+
     /**
-     * Apartment id
-     *
-     * @var integer
+     * @var int
      */
-    protected int $apartmentid;
+    protected int $apartment_id;
+
     /**
-     * Tour id
-     *
-     * @var integer
+     * @var int
      */
-    protected int $tourid;
+    protected int $tour_id;
+
     /**
-     * Price prefix
-     *
-     * @var string
+     * @var string|null
      */
-    protected string $pricePrefix;
+    protected ?string $price_prefix;
+
     /**
-     * Init
-     *
-     * @param integer $objectid
-     * @param integer $tourid
+     * @param int $apartment_id
+     * @param int $tour_id
+     * @param string|null $price_prefix
      */
-    public function __construct(int $apartmentid, int $tourid, string $pricePrefix = "price_m5")
+    public function __construct(int $apartment_id, int $tour_id, ?string $price_prefix = null)
     {
-        $this->apartmentid = $apartmentid;
+        $this->apartment_id = $apartment_id;
 
-        $this->tourid = $tourid;
+        $this->tour_id = $tour_id;
 
-        $this->pricePrefix = $pricePrefix;
+        $this->price_prefix = $price_prefix;
     }
-    /**
-     * Get tag name for cache
-     *
-     * @return string
-     */
-    public function tag()
-    {
-        $class = str_replace('\\', '_', self::class);
 
-        return $class . "_{$this->apartmentid}_{$this->tourid}_{$this->pricePrefix}";
-    }
     /**
-     * Get callable
-     *
-     * @return callable
+     * @return mixed
      */
     public function get()
     {
-        return function (ClientInterface $client) {
+        /**
+         * @var FrontApiCacheRepository $cacheFrontApiRepository
+         */
+        $cacheFrontApiRepository = SelenaService::instance()->get(FrontApiCacheRepository::class);
 
-            $frontApi = new FrontApi($client);
+        $prices = $cacheFrontApiRepository->apartmentPrices($this->apartment_id, $this->tour_id);
 
-            $prices = $frontApi->apartmentPrice(["apartmentid" => $this->apartmentid, "tourid" => $this->tourid]);
+        $prices = reset($prices);
 
-            $result = $prices["apartmentprices"][0][$this->pricePrefix] ?? null;
+        if(isset($this->price_prefix)){
 
-            if (!is_null($result)) $result = floatval($result);
+            $prices = $prices[$this->price_prefix] ?? false;
 
-            return $result ?? null;
-        };
+        }
+
+        return $prices;
     }
 }

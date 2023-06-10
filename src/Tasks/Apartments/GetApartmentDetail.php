@@ -2,108 +2,84 @@
 
 namespace Selena\Tasks\Apartments;
 
-use Psr\Http\Client\ClientInterface;
-use Selena\Exceptions\ApiException;
 use Selena\Helpers\ApartmentHelper;
-use Selena\Resources\Front\FrontApi;
+use Selena\Repository\FrontApiCacheRepository;
+use Selena\SelenaService;
 use Selena\Tasks\TaskContract;
+use Selena\Tasks\TaskHandler;
 
 /**
  * Апартаметы детально
  */
 class GetApartmentDetail implements TaskContract
 {
+
     /**
-     * ID объекта размещения
-     *
-     * @var integer
+     * @var int
      */
-    protected int $objectid;
+    protected int $object_id;
+
     /**
-     * ID тура
-     *
-     * @var integer
+     * @var int
      */
-    protected int $tourid;
+    protected int $tour_id;
+
     /**
-     * ID апартаментов
-     *
-     * @var integer
+     * @var int
      */
-    protected int $apartmentid;
+    protected int $apartment_id;
+
     /**
-     * Init
-     *
-     * @param integer $objectid
-     * @param integer $tourid
-     * @param integer $apartmentid
+     * @param int $object_id
+     * @param int $tour_id
+     * @param int $apartment_id
      */
-    public function __construct(int $objectid, int $tourid, int $apartmentid)
+    public function __construct(int $object_id, int $tour_id, int $apartment_id)
     {
-        $this->objectid = $objectid;
+        $this->apartment_id = $apartment_id;
 
-        $this->tourid = $tourid;
+        $this->tour_id = $tour_id;
 
-        $this->apartmentid = $apartmentid;
+        $this->object_id = $object_id;
     }
+
     /**
-     * Get tag name for cache
-     *
-     * @return string
+     * @return array|null
      */
-    public function tag()
+    public function get(): ?array
     {
-        $class = str_replace('\\', '_', self::class);
+        /**
+         * @var FrontApiCacheRepository $cacheFrontApiRepository
+         */
+        $cacheFrontApiRepository = SelenaService::instance()->get(FrontApiCacheRepository::class);
 
-        return $class . "_{$this->objectid}_{$this->tourid}_{$this->apartmentid}";
-    }
-    /**
-     * Get callable
-     *
-     * @return callable
-     */
-    public function get()
-    {
-        return function (ClientInterface $client) {
+        /**
+         * @var TaskHandler $handler
+         */
+        $handler = SelenaService::instance()->get(TaskHandler::class);
 
+        $apartment = $cacheFrontApiRepository->apartmentList($this->object_id, $this->apartment_id)[0] ?? [];
 
-            $frontApi = new FrontApi($client);
+        if (!empty($apartment)) {
 
-            $result = [];
+            $apartment["age_allows"] = [
+                "main_ages" => ApartmentHelper::getAllowAges($apartment["main_ages"], $apartment["own_ages"]),
+                "child_ages" => ApartmentHelper::getAllowAges($apartment["child_ages"], $apartment["own_ages"]),
+                "add_ages" => ApartmentHelper::getAllowAges($apartment["add_ages"], $apartment["own_ages"])
+            ];
 
-            $apartmentQuery = ["objectid" => $this->objectid, "apartmentid" => $this->apartmentid];
+            $apartment["prices"] = $handler->handle(\Selena\Tasks\Subtasks\GetPriceForApartment::class, $this->apartment_id, $this->tour_id);
 
-            $apartment = $frontApi->apartmentList($apartmentQuery)["apartments"][0] ?? [];
+            $offers = $handler->handle(\Selena\Tasks\Subtasks\GetApartmentOffers::class, $this->object_id, $this->tour_id, $this->apartment_id);
 
-            if (!empty($apartment)) {
+            $apartment["amount_places"] = $offers["amount"] ?? null;
 
-                $apartment["age_allows"] = [
-                    "main_ages"  => ApartmentHelper::getAllowAges($apartment["main_ages"], $apartment["own_ages"]),
-                    "child_ages" => ApartmentHelper::getAllowAges($apartment["child_ages"], $apartment["own_ages"]),
-                    "add_ages"   => ApartmentHelper::getAllowAges($apartment["add_ages"], $apartment["own_ages"])
-                ];
+            $apartment["rooms"] = reset($offers["offers"])["rooms"] ?? [];
 
-                $pricesQuery = ["apartmentid" => $apartment["id"], "tourid" => $this->tourid];
+            $result = $apartment;
+        }
 
-                $prices = $frontApi->apartmentPrice($pricesQuery)["apartmentprices"] ?? [];
+        return $result ?? null;
 
-                ApartmentHelper::prepareRegularPrices($prices);
-
-                $apartment["prices"] = $prices[0] ?? [];
-
-                $offersQuery = ["apartmentid" => $apartment["id"], "tourid" => $this->tourid, "objectid" => $this->objectid];
-
-                $offer = $frontApi->offers($offersQuery)["offers"][0] ?? [];
-
-                $apartment["amount_places"] = $offer["amount"] ?? null;
-
-                $apartment["rooms"] = $offer["rooms"] ?? [];
-
-                $result[] = $apartment;
-            }
-
-            return $result ?? null;
-
-        };
     }
 }

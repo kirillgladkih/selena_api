@@ -6,7 +6,9 @@ use Psr\Http\Client\ClientInterface;
 use Selena\Dto\Reserving\Order;
 use Selena\Dto\Reserving\Tourist;
 use Selena\Exceptions\ApiException;
+use Selena\Repository\FrontApiCacheRepository;
 use Selena\Resources\Booking\BookingApi;
+use Selena\SelenaService;
 use Selena\Tasks\TaskContract;
 
 /**
@@ -32,6 +34,7 @@ class ReserveTask implements TaskContract
      * @var boolean
      */
     protected bool $commit;
+
     /**
      * Бронирование
      *
@@ -47,42 +50,32 @@ class ReserveTask implements TaskContract
 
         $this->commit = $commit;
     }
-    /**
-     * Get tag name for cache
-     *
-     * @return string
-     */
-    public function tag()
-    {
-        $class = str_replace('\\', '_', self::class);
 
-        return $class;
-    }
     /**
-     * Get callable
-     *
-     * @return callable
+     * @return mixed|null
      */
     public function get()
     {
-        return function (ClientInterface $client) {
+        /**
+         * @var BookingApi $bookingApi
+         */
+        $bookingApi = SelenaService::instance()->get(BookingApi::class);
 
+        foreach ($this->tourists as $tourist){
 
-            $bookingApi = new BookingApi($client);
+            $tourists[] = $tourist->toArray();
 
-            foreach ($this->tourists as $tourist) $tourists[] = $tourist->toArray();
+        }
 
-            $data = [
-                "commit" => $this->commit,
-                "order" => $this->order->toArray(),
-                "tourists" => $tourists ?? []
-            ];
+        $data = [
+            "commit" => $this->commit,
+            "order" => $this->order->toArray(),
+            "tourists" => $tourists ?? []
+        ];
 
-            $result = $bookingApi->reserve($data);
+        $result = $bookingApi->reserve($data);
 
+        return $result ?? null;
 
-            return $result ?? null;
-
-        };
     }
 }

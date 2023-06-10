@@ -53,6 +53,7 @@ class ApartmentPriceQuery extends BasicQuery
         "priceid",
         "begindate"
     ];
+
     /**
      * Resolve
      *

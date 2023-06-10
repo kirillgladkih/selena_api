@@ -4,7 +4,9 @@ namespace Selena\Tasks\Tours;
 
 use Psr\Http\Client\ClientInterface;
 use Selena\Exceptions\ApiException;
+use Selena\Repository\FrontApiCacheRepository;
 use Selena\Resources\Front\FrontApi;
+use Selena\SelenaService;
 use Selena\Tasks\Subtasks\GetDiscountsForObject;
 use Selena\Tasks\Subtasks\GetMinPriceForTour;
 use Selena\Tasks\Subtasks\GetOffersForTour;
@@ -15,48 +17,31 @@ use Selena\Tasks\TaskContract;
  */
 class GetTourPack implements TaskContract
 {
-    /**
-     * ID объекта размещения
-     *
-     * @var integer
-     */
-    protected int $objectid;
-    /**
-     * Init
-     *
-     * @param integer $objectid
-     * @param integer $tourid
-     */
-    public function __construct(int $objectid)
-    {
-        $this->objectid = $objectid;
-    }
-    /**
-     * Get tag name for cache
-     *
-     * @return string
-     */
-    public function tag()
-    {
-        $class = str_replace('\\', '_', self::class);
 
-        return $class . "_{$this->objectid}";
-    }
     /**
-     * Get callable
-     *
-     * @return callable
+     * @var int
+     */
+    protected int $object_id;
+
+    /**
+     * @param int $object_id
+     */
+    public function __construct(int $object_id)
+    {
+        $this->object_id = $object_id;
+    }
+
+
+    /**
+     * @return mixed
      */
     public function get()
     {
-        return function (ClientInterface $client) {
+        /**
+         * @var FrontApiCacheRepository $cacheFrontApiRepository
+         */
+        $cacheFrontApiRepository = SelenaService::instance()->get(FrontApiCacheRepository::class);
 
-
-            $frontApi = new FrontApi($client);
-
-            $result = $frontApi->tourPackList(["objectid" => $this->objectid])["tourpacks"] ?? null;
-
-            return $result;
-        };
+        return $cacheFrontApiRepository->tourPackList($this->object_id);
     }
 }

@@ -2,68 +2,51 @@
 
 namespace Selena\Tasks\Subtasks;
 
-use Psr\Http\Client\ClientInterface;
-use Selena\Exceptions\ApiException;
-use Selena\Resources\Front\FrontApi;
+use Selena\Repository\FrontApiCacheRepository;
+use Selena\SelenaService;
 use Selena\Tasks\TaskContract;
 
-/**
- * Получить свободные места для тура
- */
 class GetOffersForTour implements TaskContract
 {
     /**
-     * ID объекта размещения
-     *
-     * @var integer
+     * @var int
      */
-    protected int $objectid;
-    /**
-     * ID тура
-     *
-     * @var integer
-     */
-    protected int $tourid;
-    /**
-     * Init
-     *
-     * @param integer $objectid
-     * @param integer $tourid
-     */
-    public function __construct(int $objectid, int $tourid)
-    {
-        $this->objectid = $objectid;
+    protected int $object_id;
 
-        $this->tourid = $tourid;
+    /**
+     * @var int
+     */
+    protected int $tour_id;
+
+    /**
+     * @param int $object_id
+     * @param int $tour_id
+     */
+    public function __construct(int $object_id, int $tour_id)
+    {
+        $this->object_id = $object_id;
+
+        $this->tour_id = $tour_id;
     }
+
     /**
-     * Get tag name for cache
-     *
-     * @return string
+     * @return int|null
      */
-    public function tag()
+    public function get(): ?int
     {
-        $class = str_replace('\\', '_', self::class);
+        /**
+         * @var FrontApiCacheRepository $cacheFrontApiRepository
+         */
+        $cacheFrontApiRepository = SelenaService::instance()->get(FrontApiCacheRepository::class);
 
-        return $class . "_{$this->objectid}_{$this->tourid}";
-    }
-    /**
-     * Get callable
-     *
-     * @return callable
-     */
-    public function get()
-    {
-        return function (ClientInterface $client) {
+        $offers = $cacheFrontApiRepository->offers($this->object_id, $this->tour_id);
 
+        foreach ($offers ?? [] as $offer) {
 
-            $frontApi = new FrontApi($client);
+            $result = intval($result ?? 0) + intval($offer["amount"] ?? 0);
 
-            $offers = $frontApi->offers(["objectid" => $this->objectid, "tourid" => $this->tourid]);
+        }
 
-            foreach ($offers["offers"] ?? [] as $offer) $result = (int) ($result ?? 0) + (int) $offer["amount"] ?? 0;
-            
-            return $result ?? null;
-        };
+        return $result ?? null;
     }
 }
