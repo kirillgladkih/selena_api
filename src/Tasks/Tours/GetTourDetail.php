@@ -51,7 +51,7 @@ class GetTourDetail implements TaskContract
 
             $result = [
                 "tour" => $tour,
-                "discounts" => $handler->handle(GetDiscountsForObject::class, $this->object_id)
+                "discounts" => $handler->handle(GetDiscountsForObject::class, ["object_id" => $this->object_id])
             ];
 
         }

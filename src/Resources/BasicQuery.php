@@ -94,13 +94,13 @@ abstract class BasicQuery
 
         if (!empty($this->params)) {
 
-            $string .= "params: " . PHP_EOL;
+            $string .= "params: ";
 
             foreach ($this->params as $key => $value){
 
                 if(!is_string($value)) $value = json_encode($value ?? [], JSON_FORCE_OBJECT|JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE);
 
-                $string .= " - $key: $value" . PHP_EOL;
+                $string .= PHP_EOL . " - $key: $value";
 
             } 
 

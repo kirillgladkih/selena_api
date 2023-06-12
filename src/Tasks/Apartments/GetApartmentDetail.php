@@ -68,13 +68,17 @@ class GetApartmentDetail implements TaskContract
                 "add_ages" => ApartmentHelper::getAllowAges($apartment["add_ages"], $apartment["own_ages"])
             ];
 
-            $apartment["prices"] = $handler->handle(\Selena\Tasks\Subtasks\GetPriceForApartment::class, $this->apartment_id, $this->tour_id);
+            $apartment["prices"] = $handler->handle(\Selena\Tasks\Subtasks\GetPriceForApartment::class, ["apartment_id" => $this->apartment_id, "tour_id" => $this->tour_id]);
 
-            $offers = $handler->handle(\Selena\Tasks\Subtasks\GetApartmentOffers::class, $this->object_id, $this->tour_id, $this->apartment_id);
+            $offers = $handler->handle(\Selena\Tasks\Subtasks\GetApartmentOffers::class, [
+                "object_id" => $this->object_id,
+                "tour_id" => $this->tour_id,
+                "apartment_id" => $this->apartment_id
+            ]);
 
             $apartment["amount_places"] = $offers["amount"] ?? null;
 
-            $apartment["rooms"] = reset($offers["offers"])["rooms"] ?? [];
+            $apartment["rooms"] = $offers["offers"][0]["rooms"] ?? [];
 
             $result = $apartment;
         }

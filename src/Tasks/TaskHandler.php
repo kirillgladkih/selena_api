@@ -11,10 +11,10 @@ class TaskHandler
 {
     /**
      * @param string $class
-     * @param ...$args
+     * @param array $args
      * @return mixed
      */
-    public function handle(string $class, ...$args)
+    public function handle(string $class, array $args, ?callable $exceptionControl = null)
     {
         try {
 
@@ -23,6 +23,12 @@ class TaskHandler
             return $process();
 
         } catch (\Throwable $throwable) {
+
+            if(!is_null($exceptionControl)){
+
+                $exceptionControl($throwable);
+
+            }
 
             $report = new DefaultReport($throwable);
 
@@ -36,17 +42,6 @@ class TaskHandler
 
             return null;
         }
-    }
-
-
-    /**
-     * @param string $class
-     * @param ...$args
-     * @return Promise
-     */
-    public function promise(string $class, ...$args): Promise
-    {
-        return new Promise($this->createProcess($class, ...$args));
     }
 
     /**
