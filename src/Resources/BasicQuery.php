@@ -106,7 +106,7 @@ abstract class BasicQuery
 
         }
 
-        return $string;
+        return $string . PHP_EOL;
     }
 
     /**
