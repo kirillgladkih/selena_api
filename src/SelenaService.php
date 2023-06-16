@@ -26,45 +26,6 @@ class SelenaService extends Container
      */
     protected function boot()
     {
-        $cacheConfig = [
-            "apartmentList" => 60 * 60 * 24,
-            "roomList" => 60 * 60 * 24,
-            "apartmentPrice" => 60 * 60 * 24,
-            "offers" => 60 * 60,
-            "tourList" => 60 * 60 * 24,
-            "tourStandList" => 60 * 60 * 24,
-            "serviceList" => 60 * 60 * 24,
-            "tourPackList" => 60 * 60 * 24,
-            "unitList" => 60 * 60 * 24
-        ];
-
-        $clients = [
-            new Client(["auth" => ["login", "pass"]]),
-        ];
-
-        $frontApi = new FrontApi($clients);
-
-        $bookingApi = new BookingApi($clients);
-
-        $cachePool = new FilesystemAdapter("selena_cache", 0, __DIR__ . "/../cache");
-
-        $logger = new FileLogger(__DIR__ . "/../logs");
-
-        $this->set(\Symfony\Component\Cache\Adapter\AbstractAdapter::class, $cachePool);
-
-        $this->set(LoggerInterface::class, $logger);
-
-        $this->set(FrontApi::class, $frontApi);
-
-        $this->set(BookingApi::class, $bookingApi);
-
-        $this->set(TaskHandler::class, new TaskHandler());
-
-        $frontApiCacheRepository = new FrontApiCacheRepository($cachePool);
-
-        $frontApiCacheRepository->loadCacheLifetimes($cacheConfig);
-
-        $this->set(FrontApiCacheRepository::class, $frontApiCacheRepository);
     }
 
     /**
