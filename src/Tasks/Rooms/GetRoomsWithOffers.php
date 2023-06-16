@@ -61,17 +61,27 @@ class GetRoomsWithOffers implements TaskContract
 
         $offers = $cacheFrontApiRepository->offers($this->object_id, $this->tour_id);
 
+        $apartment = $cacheFrontApiRepository->apartmentList($this->object_id, $this->apartment_id);
+
+        $apartment = reset($apartment);
+
         $roomIds = array_map(fn($item) => $item["id"], $rooms);
 
         $offers = array_filter($offers, fn($offer) => $offer["apartmentid"] == $this->apartment_id);
 
-        foreach ($offers as $offer){
+        foreach ($offers as $offer) {
 
-            foreach ($offer["rooms"] ?? [] as $offerRoom){
+            foreach ($offer["rooms"] ?? [] as $offerRoom) {
 
-                if(in_array($offerRoom["roomid"], $roomIds)){
+                if (in_array($offerRoom["roomid"], $roomIds)) {
 
                     $offerRoom["id"] = $offerRoom["roomid"];
+
+                    $offerRoom["one_place_only"] = $apartment["one_place_only"];
+
+                    $offerRoom["places"] = $apartment["places"];
+
+                    $offerRoom["disabled"] = $apartment["places"] != $offerRoom["amount"] && $apartment["one_place_only"] == false;
 
                     $result[] = $offerRoom;
 
