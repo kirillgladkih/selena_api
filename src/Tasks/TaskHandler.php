@@ -12,13 +12,14 @@ class TaskHandler
     /**
      * @param string $class
      * @param array $args
+     * @param callable|null $exceptionControl
      * @return mixed
      */
     public function handle(string $class, array $args, ?callable $exceptionControl = null)
     {
         try {
 
-            $process = $this->createProcess($class, ...$args);
+            $process = $this->createProcess($class, $args);
 
             return $process();
 
@@ -46,10 +47,10 @@ class TaskHandler
 
     /**
      * @param string $class
-     * @param ...$args
+     * @param array $args
      * @return Closure
      */
-    protected function createProcess(string $class, ...$args): Closure
+    protected function createProcess(string $class, array $args): Closure
     {
         return function () use ($class, $args) {
 

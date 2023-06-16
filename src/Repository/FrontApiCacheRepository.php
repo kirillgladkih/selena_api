@@ -2,7 +2,6 @@
 
 namespace Selena\Repository;
 
-use Psr\Cache\InvalidArgumentException;
 use Selena\Resources\Front\FrontApi;
 use Selena\SelenaService;
 use Symfony\Component\Cache\Adapter\AbstractAdapter;
@@ -10,6 +9,7 @@ use Symfony\Contracts\Cache\ItemInterface;
 
 class FrontApiCacheRepository extends AbstractCacheRepository
 {
+
     /**
      * @var int
      */
@@ -33,11 +33,11 @@ class FrontApiCacheRepository extends AbstractCacheRepository
      */
     public function unitList(int $object_id)
     {
-        $tag = "unitList_$object_id";
+        $tag = CacheTags::UNIT_LIST_TAG . "_$object_id";
 
-        $callable = $this->frontApi->unitList(["objectid" => $object_id])["units"] ?? [];
+        $callable = fn() => $this->frontApi->unitList(["objectid" => $object_id])["units"] ?? [];
 
-        return $this->process($tag, $callable, $this->cacheLifetimes["unitList"]);
+        return $this->process($tag, $callable, $this->cacheLifetimes[CacheTags::UNIT_LIST_TAG]);
     }
 
     /**
@@ -46,11 +46,11 @@ class FrontApiCacheRepository extends AbstractCacheRepository
      */
     public function tourPackList(int $object_id)
     {
-        $tag = "tourPackList_$object_id";
+        $tag = CacheTags::TOUR_PACK_LIST_TAG . "_$object_id";
 
         $callable = fn() => $this->frontApi->tourPackList(["objectid" => $object_id])["tourpacks"] ?? [];
 
-        return $this->process($tag, $callable, $this->cacheLifetimes["serviceList"]);
+        return $this->process($tag, $callable, $this->cacheLifetimes[CacheTags::TOUR_PACK_LIST_TAG]);
     }
 
     /**
@@ -59,11 +59,11 @@ class FrontApiCacheRepository extends AbstractCacheRepository
      */
     public function serviceList(int $object_id)
     {
-        $tag = "serviceList_$object_id";
+        $tag =  CacheTags::SERVICE_LIST_TAG . "_$object_id";
 
         $callable = fn() => $this->frontApi->serviceList(["objectid" => $object_id])["services"] ?? [];
 
-        return $this->process($tag, $callable, $this->cacheLifetimes["serviceList"]);
+        return $this->process($tag, $callable, $this->cacheLifetimes[CacheTags::SERVICE_LIST_TAG]);
     }
 
     /**
@@ -72,11 +72,11 @@ class FrontApiCacheRepository extends AbstractCacheRepository
      */
     public function tourStandList(int $tour_id)
     {
-        $tag = "tourStandList_$tour_id";
+        $tag = CacheTags::TOUR_STAND_LIST_TAG . "_$tour_id";
 
         $callable = fn() => $this->frontApi->tourStandList(["tourid" => $tour_id])["tourstands"] ?? [];
 
-        return $this->process($tag, $callable, $this->cacheLifetimes["tourStandList"]);
+        return $this->process($tag, $callable, $this->cacheLifetimes[CacheTags::TOUR_STAND_LIST_TAG]);
     }
 
     /**
@@ -86,11 +86,11 @@ class FrontApiCacheRepository extends AbstractCacheRepository
      */
     public function tourList(int $object_id, ?int $tour_id = null)
     {
-        $tag = "tourList_$object_id";
+        $tag = CacheTags::TOUR_LIST_TAG . "_$object_id";
 
         $callable = fn() => $this->frontApi->tourList(["objectid" => $object_id])["tours"] ?? [];
 
-        $tours = $this->process($tag, $callable, $this->cacheLifetimes["tourList"]);
+        $tours = $this->process($tag, $callable, $this->cacheLifetimes[CacheTags::TOUR_LIST_TAG]);
 
         if (isset($tour_id)) {
 
@@ -108,11 +108,11 @@ class FrontApiCacheRepository extends AbstractCacheRepository
      */
     public function apartmentList(int $object_id, ?int $apartment_id = null)
     {
-        $tag = "apartmentList_$object_id";
+        $tag = CacheTags::APARTMENT_LIST_TAG . "_$object_id";
 
         $callable = fn() => $this->frontApi->apartmentList(["objectid" => $object_id])["apartments"] ?? [];
 
-        $apartments = $this->process($tag, $callable, $this->cacheLifetimes["apartmentList"]);
+        $apartments = $this->process($tag, $callable, $this->cacheLifetimes[CacheTags::APARTMENT_LIST_TAG]);
 
         if (isset($apartment_id)) {
 
@@ -129,11 +129,11 @@ class FrontApiCacheRepository extends AbstractCacheRepository
      */
     public function roomList(int $apartment_id)
     {
-        $tag = "roomList_$apartment_id";
+        $tag = CacheTags::ROOM_LIST_TAG . "_$apartment_id";
 
         $callable = fn() => $this->frontApi->roomList(["apartmentid" => $apartment_id])["rooms"] ?? [];
 
-        $rooms = $this->process($tag, $callable, $this->cacheLifetimes["roomList"]);
+        $rooms = $this->process($tag, $callable, $this->cacheLifetimes[CacheTags::ROOM_LIST_TAG]);
 
         $result = array_filter($rooms, fn($item) => !empty($item));
 
@@ -147,11 +147,11 @@ class FrontApiCacheRepository extends AbstractCacheRepository
      */
     public function apartmentPrices(int $apartment_id, ?int $tour_id = null)
     {
-        $tag = "apartmentPrice_{$apartment_id}";
+        $tag = CacheTags::APARTMENT_PRICE_TAG . "_{$apartment_id}";
 
         $callable = fn() => $this->frontApi->apartmentPrice(["apartmentid" => $apartment_id])["apartmentprices"] ?? [];
 
-        $prices = $this->process($tag, $callable, $this->cacheLifetimes["apartmentPrice"]);
+        $prices = $this->process($tag, $callable, $this->cacheLifetimes[CacheTags::APARTMENT_PRICE_TAG]);
 
         if (isset($tour_id)) {
 
@@ -169,11 +169,11 @@ class FrontApiCacheRepository extends AbstractCacheRepository
      */
     public function offers(int $object_id, ?int $tour_id = null)
     {
-        $tag = "offers_{$object_id}";
+        $tag = CacheTags::OFFERS_TAG . "_{$object_id}";
 
         $callable = fn() => $this->frontApi->offers(["objectid" => $object_id])["offers"] ?? [];
 
-        $offers = $this->process($tag, $callable, $this->cacheLifetimes["offers"]);
+        $offers = $this->process($tag, $callable, $this->cacheLifetimes[CacheTags::OFFERS_TAG]);
 
         if (isset($tour_id)) {
 
@@ -196,11 +196,11 @@ class FrontApiCacheRepository extends AbstractCacheRepository
      */
     public function discountList(int $object_id)
     {
-        $tag = "offers_{$object_id}";
+        $tag =  CacheTags::DISCOUNT_LIST_TAG . "_{$object_id}";
 
         $callable = fn() => $this->frontApi->discountList(["objectid" => $this->objectid])["discounts"] ?? [];;
 
-        return $this->process($tag, $callable, $this->cacheLifetimes["offers"]);
+        return $this->process($tag, $callable, CacheTags::DISCOUNT_LIST_TAG);
     }
 
     /**

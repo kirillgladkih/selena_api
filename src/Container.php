@@ -13,16 +13,18 @@ class Container
     /**
      * @param string $key
      * @param $value
-     * @param ...$args
+     * @param array $args
      * @return void
      */
-    public function set(string $key, $value, ...$args): void
+    public function set(string $key, $value, array $args = []): void
     {
+        $key = $this->prepareKey($key);
+
         $result = $value;
 
         if(is_callable($value)){
 
-            $result = $value($args);
+            $result = $value(...$args);
 
         }
 
@@ -35,6 +37,8 @@ class Container
      */
     public function get($key)
     {
+        $key = $this->prepareKey($key);
+
         return $this->container[$key];
     }
 
@@ -44,6 +48,17 @@ class Container
      */
     public function exists(string $key): bool
     {
+        $key = $this->prepareKey($key);
+
         return isset($this->container[$key]);
+    }
+
+    /**
+     * @param string $key
+     * @return string
+     */
+    private function prepareKey(string $key): string
+    {
+        return $key;
     }
 }

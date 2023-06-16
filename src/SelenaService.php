@@ -39,8 +39,7 @@ class SelenaService extends Container
         ];
 
         $clients = [
-            new Client(["auth" => ["kama", "pass"]]),
-            new Client(["auth" => ["kama", "pass"]])
+            new Client(["auth" => ["login", "pass"]]),
         ];
 
         $frontApi = new FrontApi($clients);
@@ -50,6 +49,8 @@ class SelenaService extends Container
         $cachePool = new FilesystemAdapter("selena_cache", 0, __DIR__ . "/../cache");
 
         $logger = new FileLogger(__DIR__ . "/../logs");
+
+        $this->set(\Symfony\Component\Cache\Adapter\AbstractAdapter::class, $cachePool);
 
         $this->set(LoggerInterface::class, $logger);
 

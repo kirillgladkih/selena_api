@@ -2,6 +2,7 @@
 
 namespace Selena\Resources\Booking\Queries;
 
+use Exception;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -36,23 +37,13 @@ class ReserveQuery extends BasicQuery
     protected array $attributes = ["commit", "order", "tourists"];
 
     /**
-     * Init
-     *
-     * @param array $data
-     */
-    public function __construct(array $data = [])
-    {
-        parent::__construct($data);
-
-        $this->headers["content-type"] = "application/json";
-    }
-
-    /**
      * @return void
-     * @throws \Exception
+     * @throws Exception
      */
     protected function resolve(): void
     {
+        $this->headers["content-type"] = "application/json";
+
         $data = [
             "order" => $this->params["order"] ?? [],
             "commit" => $this->params["commit"] ?? false,
