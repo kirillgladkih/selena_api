@@ -171,7 +171,9 @@ class FrontApiCacheRepository extends AbstractCacheRepository
     {
         $tag = CacheTags::OFFERS_TAG . "_{$object_id}";
 
-        $callable = fn() => $this->frontApi->offers(["objectid" => $object_id])["offers"] ?? [];
+        $from = (intval(date("Y"))+2)."-01"."-01";
+        
+        $callable = fn() => $this->frontApi->offers(["objectid" => $object_id, "from" => $from])["offers"] ?? [];
 
         $offers = $this->process($tag, $callable, $this->cacheLifetimes[CacheTags::OFFERS_TAG]);
 
