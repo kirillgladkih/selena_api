@@ -15,25 +15,18 @@ class ApartmentsFilter implements TaskContract
     /**
      * @var array
      */
-    protected array $children;
-
-    /**
-     * @var int
-     */
-    protected int $main_places;
+    protected array $ages;
 
     /**
      * @param array $apartments
-     * @param int $main_places
-     * @param array $children
+     * @param array $ages
      */
-    public function __construct(array $apartments, int $main_places = 0, array $children = [])
+    public function __construct(array $apartments, array $ages = [])
     {
-        $this->apartments = $apartments;
+        $this->apartments = $this->prepare($apartments);
 
-        $this->main_places = $main_places;
+        $this->ages = $ages;
 
-        $this->children = $children;
     }
 
     /**
@@ -41,44 +34,85 @@ class ApartmentsFilter implements TaskContract
      */
     public function get(): array
     {
-        $childrenCount = count(($this->children ?? []));
+        $ages = $this->ages;
 
-        foreach ($this->apartments as $apartment) {
+        return array_filter($this->apartments, function ($apartment) use ($ages){
 
-            if (($this->main_places <= (int)$apartment["places"]) && ($childrenCount <= (int)$apartment["childplaces"])) {
+            $placements = $apartment["placements"];
 
-                $childAgesCount = count($apartment["age_allows"]["child_ages"]);
+            if(count($placements) >= count($ages)){
 
-                if ($childrenCount >= 1) {
+                $allows = [];
 
-                    if ($childAgesCount >= 1) {
+                foreach ($ages as $age){
 
-                        $from = (int)($apartment["age_allows"]["child_ages"][0]["from"] ?? 0);
+                    foreach ($placements as $key => $placement){
 
-                        $to = (int)($apartment["age_allows"]["child_ages"][$childAgesCount - 1]["to"] ?? 16);
+                        if(($age >= $placement["from"]) && ($age <= $placement["to"])){
 
-                        $childrenAgeCondition = true;
+                            $allows[] = $placement;
 
-                        foreach ($this->children as $age) {
+                            unset($placements[$key]);
 
-                            $childrenAgeCondition = $age <= $to && $age >= $from;
-
-                            if ($childrenAgeCondition) {
-
-                                $result[] = $apartment;
-
-                                break;
-                            }
+                            break;
                         }
+
                     }
 
-                } else {
-
-                    $result[] = $apartment;
                 }
+
+                return count($allows) == count($ages);
+
             }
+
+            return false;
+        });
+    }
+
+    /**
+     * @param array $apartments
+     * @return array
+     */
+    private function prepare(array $apartments): array
+    {
+
+        foreach ($apartments as $key => $apartment) {
+
+            $places = ["main_ages" => $apartment["places"], "child_ages" => $apartment["childplaces"], "add_ages" => $apartment["addplaces"]];
+
+            foreach ($places as $placeKey => $placeCount) {
+
+                for ($i = 0; $i < $placeCount; $i++) {
+
+                    $ages = $this->detectAges($apartment[$placeKey], $apartment["own_ages"]);
+
+                    $apartments[$key]["placements"][] = ["from" => $ages[0], "to" => $ages[1], "code" => $placeKey];
+
+                }
+
+            }
+
         }
 
-        return $result ?? [];
+        return $apartments;
+    }
+
+    /**
+     * @param string $bitMap
+     * @param array $ages
+     * @return array
+     */
+    private function detectAges(string $bitMap, array $ages): array
+    {
+        $ageAllows = array_keys(
+            array_filter(
+                str_split($bitMap), fn($item) => $item != 0
+            )
+        );
+        $indexFromAge = reset($ageAllows);
+
+        $indexToAge = end($ageAllows);
+
+        return [$ages[$indexFromAge]["from"] ?? 0, $ages[$indexToAge]["to"] ?? 100];
     }
 }
